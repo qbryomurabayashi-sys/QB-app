@@ -1,0 +1,5 @@
+{
+  "name": "QB House 評価",
+  "description": "評価画面: 各カテゴリのタブを切り替えて評価を入力します。「店長」タブはパスワードでロック解除されます。",
+  "requestFramePermissions": []
+}
