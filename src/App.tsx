@@ -18,6 +18,8 @@ import { PerformanceEvaluation } from './components/PerformanceEvaluation';
 import { CriteriaGuide } from './components/CriteriaGuide';
 import { ScheduleAlert } from './components/ScheduleAlert';
 
+import { ActionPlan } from './components/ActionPlan';
+
 const STAFF_INDEX_KEY = 'qb_staff_index_v1';
 const DATA_PREFIX = 'qb_data_';
 
@@ -37,7 +39,7 @@ const ScrollToTopButton = () => {
 export default function App() {
   const [staffList, setStaffList] = useState<StaffSummary[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'TOP' | 'MENU' | 'FORM'>('TOP');
+  const [viewMode, setViewMode] = useState<'TOP' | 'MENU' | 'FORM' | 'ACTION_PLAN'>('TOP');
   const [selectedStaffSummary, setSelectedStaffSummary] = useState<StaffSummary | null>(null);
 
   const [items, setItems] = useState<EvaluationItem[]>(INITIAL_ITEMS);
@@ -455,6 +457,7 @@ export default function App() {
         onCreate={createNewStaff}
         onDelete={deleteStaff}
         onBatchPrint={handleBatchPrint}
+        onActionPlan={() => setViewMode('ACTION_PLAN')}
       />
     );
   }
@@ -474,6 +477,10 @@ export default function App() {
     );
   }
 
+  if (viewMode === 'ACTION_PLAN') {
+    return <ActionPlan onBack={() => setViewMode('TOP')} />;
+  }
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg sm:max-w-2xl flex flex-col relative">
       <ScrollToTopButton />
@@ -485,8 +492,7 @@ export default function App() {
               <Store size={24} />
               <span className="text-[10px] sm:text-xs font-bold leading-tight">TOPへ<br className="sm:hidden" />戻る</span>
             </button>
-            <h1 className="text-sm sm:text-lg font-bold truncate">QB House Evaluation Sheet</h1>
-          </div>
+            <h1 className="text-sm sm:text-lg font-bold truncate">QB総合ツール</h1>          </div>
           <div className="flex items-center gap-2">
             {isReadOnly && (
               <button onClick={handleEditMode} className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1">
@@ -633,8 +639,7 @@ export default function App() {
                   <div className="border-b-2 border-gray-800 pb-2 mb-2 flex justify-between items-end">
                     <div>
                       <h1 className="text-xl font-bold text-gray-900">評価フィードバックシート</h1>
-                      <p className="text-gray-500 text-xs">QB House Evaluation Sheet</p>
-                    </div>
+                      <p className="text-gray-500 text-xs">QB総合ツール</p>                    </div>
                     <div className="text-right text-xs">
                       <p>店舗: <span className="font-bold border-b border-gray-400 px-2">{m.store}</span> / 氏名: <span className="font-bold border-b border-gray-400 px-2">{m.name}</span></p>
                       <p>評価日: {m.date}</p>

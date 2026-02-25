@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, User, Plus, Trash2, History, ChevronRight, Upload, Download, Layers } from 'lucide-react';
+import { Store, User, Plus, Trash2, History, ChevronRight, Upload, Download, Layers, BookOpen } from 'lucide-react';
 import { StaffSummary } from '../types';
 
 interface TopPageProps {
@@ -8,9 +8,10 @@ interface TopPageProps {
   onCreate: () => void;
   onDelete: (id: string) => void;
   onBatchPrint: () => void;
+  onActionPlan: () => void;
 }
 
-export const TopPage: React.FC<TopPageProps> = ({ staffList, onSelect, onCreate, onDelete, onBatchPrint }) => {
+export const TopPage: React.FC<TopPageProps> = ({ staffList, onSelect, onCreate, onDelete, onBatchPrint, onActionPlan }) => {
   const uniqueStaffList = React.useMemo(() => {
     const seen = new Set();
     return staffList.filter(staff => {
@@ -66,16 +67,24 @@ export const TopPage: React.FC<TopPageProps> = ({ staffList, onSelect, onCreate,
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
               <Store className="text-blue-600" size={32} />
-              QB House Evaluation Sheet
+              QB総合ツール
             </h1>
             <p className="text-gray-500 mt-1">評価画面: 各カテゴリのタブを切り替えて評価を入力します。「店長」タブはパスワードでロック解除されます。</p>
           </div>
-          <button
-            onClick={onCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95"
-          >
-            <Plus size={24} /> 新規評価を作成
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={onActionPlan}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95"
+            >
+              <BookOpen size={24} /> アクションプラン作成
+            </button>
+            <button
+              onClick={onCreate}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95"
+            >
+              <Plus size={24} /> 新規評価を作成
+            </button>
+          </div>
         </div>
 
         <div className="mb-6 flex flex-wrap justify-end gap-2">
