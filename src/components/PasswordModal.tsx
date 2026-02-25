@@ -34,7 +34,7 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, o
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-900">店長評価ロック解除</h3>
+          <h3 className="text-lg font-bold text-gray-900">店長評価ロック解除 (AM専用)</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={24} />
           </button>
