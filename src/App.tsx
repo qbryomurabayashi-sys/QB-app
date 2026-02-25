@@ -19,6 +19,8 @@ import { CriteriaGuide } from './components/CriteriaGuide';
 import { ScheduleAlert } from './components/ScheduleAlert';
 
 import { ActionPlan } from './components/ActionPlan';
+import { VersionInfo } from './components/VersionInfo';
+import { OperationGuide } from './components/OperationGuide';
 
 const STAFF_INDEX_KEY = 'qb_staff_index_v1';
 const DATA_PREFIX = 'qb_data_';
@@ -39,7 +41,7 @@ const ScrollToTopButton = () => {
 export default function App() {
   const [staffList, setStaffList] = useState<StaffSummary[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'TOP' | 'MENU' | 'FORM' | 'ACTION_PLAN'>('TOP');
+  const [viewMode, setViewMode] = useState<'TOP' | 'MENU' | 'FORM' | 'ACTION_PLAN' | 'VERSION_INFO' | 'OPERATION_GUIDE'>('TOP');
   const [selectedStaffSummary, setSelectedStaffSummary] = useState<StaffSummary | null>(null);
 
   const [items, setItems] = useState<EvaluationItem[]>(INITIAL_ITEMS);
@@ -458,6 +460,44 @@ export default function App() {
         onDelete={deleteStaff}
         onBatchPrint={handleBatchPrint}
         onActionPlan={() => setViewMode('ACTION_PLAN')}
+        onVersionInfo={() => setViewMode('VERSION_INFO')}
+        onOperationGuide={() => setViewMode('OPERATION_GUIDE')}
+        onBackup={() => {
+          const dataToExport: Record<string, string> = {};
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('qb_')) {
+              dataToExport[key] = localStorage.getItem(key) || '';
+            }
+          });
+          const blob = new Blob([JSON.stringify(dataToExport)], { type: 'application/json' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = `backup_qb_eval_${new Date().toISOString().split('T')[0]}.json`;
+          link.click();
+        }}
+        onRestore={(e) => {
+          if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              try {
+                const importedData = JSON.parse(ev.target.result as string);
+                if (confirm('現在のデータを上書きしてデータを復元しますか？（この操作は取り消せません）')) {
+                  Object.keys(importedData).forEach(key => {
+                    if (key.startsWith('qb_')) {
+                      const value = importedData[key];
+                      localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+                    }
+                  });
+                  alert('データの復元が完了しました。ページをリロードします。');
+                  window.location.reload();
+                }
+              } catch (err) {
+                alert('ファイルの読み込みに失敗しました。');
+              }
+            };
+            reader.readAsText(e.target.files[0]);
+          }
+        }}
       />
     );
   }
@@ -479,6 +519,14 @@ export default function App() {
 
   if (viewMode === 'ACTION_PLAN') {
     return <ActionPlan onBack={() => setViewMode('TOP')} />;
+  }
+
+  if (viewMode === 'VERSION_INFO') {
+    return <VersionInfo onBack={() => setViewMode('TOP')} />;
+  }
+
+  if (viewMode === 'OPERATION_GUIDE') {
+    return <OperationGuide onBack={() => setViewMode('TOP')} />;
   }
 
   return (
