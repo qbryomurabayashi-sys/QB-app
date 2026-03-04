@@ -1,12 +1,12 @@
 export type Category = '関係性' | '接客' | '技術' | '実績' | '店長';
-export type Axis = 'マインド' | 'チームワーク' | '接客プロセス' | '提案・対応' | '技術力' | '実績' | '店長スキル';
+export type Axis = 'マインド' | 'チームワーク' | '接客プロセス' | '提案・対応' | '技術力' | '実績' | '店長スキル' | '運営管理スキル' | '顧客サービススキル' | 'チームマネジメントスキル' | '戦略思考スキル' | '問題解決スキル' | '個人の属性' | '管理責任・コンプライアンス';
 
 export interface Incident {
   id: string;
   date: string;
-  desc: string;
-  deduction: number;
-  improvement: number;
+  description: string;
+  deduction?: number;
+  improvement?: number;
 }
 
 export interface EvaluationItem {
@@ -19,8 +19,8 @@ export interface EvaluationItem {
   score: number | null;
   desc: string;
   pointDesc?: string;
-  criteria?: Record<number, string>;
   validScores?: number[];
+  criteria: Record<number, string>;
   memo?: string;
   incidents?: Incident[];
 }
@@ -51,3 +51,4 @@ export interface StaffSummary {
   date: string;
   updatedAt: number;
 }
+

@@ -39,7 +39,7 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
     const newInc: Incident = {
       id: Date.now().toString(),
       date: newIncidentDate,
-      desc: newIncidentDesc,
+      description: newIncidentDesc,
       deduction: newIncidentDeduction,
       improvement: newIncidentImprovement
     };
@@ -171,7 +171,7 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
                     <div className="flex justify-between items-start mb-1">
                       <div className="text-sm font-bold text-gray-800 pr-6">
                         <span className="text-xs text-gray-500 font-normal mr-2 block sm:inline">{inc.date}</span>
-                        {inc.desc}
+                        {inc.description}
                       </div>
                       <div className="text-right shrink-0">
                         <span className="text-red-600 font-bold mr-2">{inc.deduction}点</span>
@@ -179,7 +179,7 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
                       </div>
                     </div>
                     <div className="text-xs text-gray-500 text-right">
-                      計: {Math.min(0, inc.deduction + inc.improvement)}点
+                      計: {Math.min(0, (inc.deduction || 0) + (inc.improvement || 0))}点
                     </div>
                     {!readOnly && (
                       <button
@@ -296,7 +296,7 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
                 disabled={readOnly}
               />
               <div className="text-right font-bold text-red-600 text-2xl w-12 shrink-0 tabular-nums">
-                {item.score ?? 0}
+                {item.score !== null ? item.score : ""}
               </div>
             </div>
             <div className="mt-2 p-2 bg-red-50 border border-red-100 rounded text-gray-700 text-xs">
@@ -306,29 +306,44 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
             </div>
           </div>
         ) : (
-          <div>
-            <div className="flex flex-row gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="space-y-3">
+            <div className="flex gap-2">
               {availableScores.map((score) => {
                 const isSelected = item.score === score;
-
-                let colorClass = 'border-gray-200 hover:bg-gray-50';
+                
                 let selectedClass = 'bg-blue-50 border-blue-500 ring-1 ring-blue-500';
                 let badgeClass = 'bg-gray-100 text-gray-600';
 
-                if (score > 0) {
-                  if (score >= 3) {
-                    selectedClass = 'bg-blue-50 border-blue-600 ring-2 ring-blue-600';
-                    badgeClass = isSelected ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800';
-                  } else if (score === 2) {
-                    selectedClass = 'bg-sky-50 border-sky-500 ring-2 ring-sky-500';
-                    badgeClass = isSelected ? 'bg-sky-500 text-white' : 'bg-sky-100 text-sky-800';
+                if (isSelected) {
+                  if (score > 0) {
+                    if (score >= 3) {
+                      selectedClass = 'bg-blue-50 border-blue-600 ring-2 ring-blue-600';
+                      badgeClass = 'bg-blue-600 text-white';
+                    } else if (score === 2) {
+                      selectedClass = 'bg-sky-50 border-sky-500 ring-2 ring-sky-500';
+                      badgeClass = 'bg-sky-500 text-white';
+                    } else {
+                      selectedClass = 'bg-orange-50 border-orange-500 ring-2 ring-orange-500';
+                      badgeClass = 'bg-orange-500 text-white';
+                    }
+                  } else if (score < 0 || (score === 0 && item.max > 0)) {
+                    selectedClass = 'bg-red-50 border-red-500 ring-2 ring-red-500';
+                    badgeClass = 'bg-red-500 text-white';
                   } else {
-                    selectedClass = 'bg-orange-50 border-orange-500 ring-2 ring-orange-500';
-                    badgeClass = isSelected ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-800';
+                    selectedClass = 'bg-gray-50 border-gray-500 ring-2 ring-gray-500';
+                    badgeClass = 'bg-gray-600 text-white';
                   }
-                } else if (score < 0 || (score === 0 && item.max > 0)) {
-                  selectedClass = 'bg-red-50 border-red-500 ring-2 ring-red-500';
-                  badgeClass = isSelected ? 'bg-red-500 text-white' : 'bg-red-100 text-red-800';
+                } else {
+                  selectedClass = 'bg-white border-gray-200 hover:bg-gray-50';
+                  if (score > 0) {
+                    if (score >= 3) badgeClass = 'bg-blue-100 text-blue-800';
+                    else if (score === 2) badgeClass = 'bg-sky-100 text-sky-800';
+                    else badgeClass = 'bg-orange-100 text-orange-800';
+                  } else if (score < 0 || (score === 0 && item.max > 0)) {
+                    badgeClass = 'bg-red-100 text-red-800';
+                  } else {
+                    badgeClass = 'bg-gray-100 text-gray-800';
+                  }
                 }
 
                 return (
@@ -337,7 +352,7 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
                     key={score}
                     onClick={() => !readOnly && onUpdate(item.no, score)}
                     disabled={readOnly}
-                    className={`flex-1 min-w-[3.5rem] p-2 rounded-lg border-2 transition-all duration-100 flex flex-col items-center justify-center gap-1 ${!readOnly && 'active:scale-95'} ${isSelected ? selectedClass : colorClass} ${readOnly ? 'opacity-80 cursor-default' : ''}`}
+                    className={`flex-1 py-3 rounded-lg border-2 transition-all duration-100 flex items-center justify-center ${!readOnly && 'active:scale-[0.98]'} ${selectedClass} ${readOnly ? 'opacity-80 cursor-default' : ''}`}
                   >
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg ${badgeClass}`}>
                       {score}
@@ -346,14 +361,12 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
                 );
               })}
             </div>
-
-            <div className={`mt-2 p-2 rounded-lg border min-h-[2.5rem] transition-all duration-300 ${item.score !== null ? 'bg-gray-50 border-gray-200' : 'bg-gray-50/50 border-dashed border-gray-200'}`}>
-              <p className={`text-xs leading-relaxed ${item.score !== null ? 'text-gray-800 font-medium' : 'text-gray-400 text-center italic'}`}>
-                {item.score !== null
-                  ? (item.criteria?.[item.score] || (item.score === 0 ? "不十分 / なし" : "評価基準なし"))
-                  : "点数を選択してください"}
-              </p>
-            </div>
+            
+            {item.score !== null && (
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {item.criteria?.[item.score] || (item.score === 0 ? "不十分 / なし" : "評価基準なし")}
+              </div>
+            )}
           </div>
         )}
       </div>

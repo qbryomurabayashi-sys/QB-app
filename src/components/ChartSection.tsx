@@ -1,6 +1,6 @@
 import React from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { AXES, MONTH_LABELS, MANAGER_AXES } from '../constants';
+import { AXES, MANAGER_AXES, MONTH_LABELS } from '../constants';
 import { EvaluationItem, PerformanceData } from '../types';
 
 interface ChartSectionProps {
@@ -19,7 +19,8 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
   comparisonPerformanceScore
 }) => {
   const radarData = React.useMemo(() => {
-    return AXES.map((axis) => {
+    const staffAxes = AXES.filter(axis => !MANAGER_AXES.includes(axis) && axis !== '店長スキル');
+    return staffAxes.map((axis) => {
       // Current Data (A)
       let percentageA = 0;
       if (axis === '実績') {

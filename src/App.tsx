@@ -29,6 +29,22 @@ const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
 };
 
+const mergeWithInitialItems = (savedItems: any[]) => {
+  if (!savedItems || !Array.isArray(savedItems)) return INITIAL_ITEMS;
+  return INITIAL_ITEMS.map(initialItem => {
+    const savedItem = savedItems.find(i => i.no === initialItem.no);
+    if (savedItem) {
+      return {
+        ...initialItem,
+        score: savedItem.score,
+        memo: savedItem.memo,
+        incidents: savedItem.incidents
+      };
+    }
+    return initialItem;
+  });
+};
+
 const ScrollToTopButton = () => {
   const scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); };
   return (
@@ -220,10 +236,11 @@ export default function App() {
             ...data.metadata?.performance
           }
         });
-        setItems(data.items);
+        const mergedItems = mergeWithInitialItems(data.items);
+        setItems(mergedItems);
         setPerformanceScore(data.performanceScore || 5);
         setCurrentId(id);
-        setIsStoreManagerUnlocked(data.items.some((i: any) => i.category === '店長' && i.score !== null));
+        setIsStoreManagerUnlocked(mergedItems.some((i: any) => i.category === '店長' && i.score !== null));
         setViewMode('FORM');
         setIsReadOnly(false);
       }
@@ -311,7 +328,9 @@ export default function App() {
     const allStaffData = staffList.map(staff => {
       const rawData = localStorage.getItem(DATA_PREFIX + staff.id);
       if (!rawData) return null;
-      return JSON.parse(rawData);
+      const data = JSON.parse(rawData);
+      data.items = mergeWithInitialItems(data.items);
+      return data;
     }).filter(d => d !== null);
 
     const basicRows = [
@@ -399,7 +418,9 @@ export default function App() {
       try {
         const rawData = localStorage.getItem(DATA_PREFIX + staff.id);
         if (!rawData) return null;
-        return JSON.parse(rawData);
+        const data = JSON.parse(rawData);
+        data.items = mergeWithInitialItems(data.items);
+        return data;
       } catch (e) {
         return null;
       }
@@ -420,10 +441,11 @@ export default function App() {
     if (raw) {
       const data = JSON.parse(raw);
       setMetadata({ ...data.metadata });
-      setItems(data.items);
+      const mergedItems = mergeWithInitialItems(data.items);
+      setItems(mergedItems);
       setPerformanceScore(data.performanceScore || 5);
       setCurrentId(id);
-      setIsStoreManagerUnlocked(data.items.some((i: any) => i.category === '店長' && i.score !== null));
+      setIsStoreManagerUnlocked(mergedItems.some((i: any) => i.category === '店長' && i.score !== null));
       setIsReadOnly(true);
       setViewMode('FORM');
       setIsHistoryOpen(false);
@@ -434,6 +456,7 @@ export default function App() {
     const raw = localStorage.getItem(DATA_PREFIX + record.id);
     if (raw) {
       const data = JSON.parse(raw);
+      data.items = mergeWithInitialItems(data.items);
       setComparisonData(data);
       alert("比較データをロードしました。チャート上に前回のデータが赤色で表示されます。");
     }
