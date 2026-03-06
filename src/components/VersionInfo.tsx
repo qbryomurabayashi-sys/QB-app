@@ -11,6 +11,16 @@ interface VersionUpdate {
 
 const UPDATES: VersionUpdate[] = [
   {
+    version: '2.2.1',
+    date: '2026-03-06',
+    title: '翻訳不具合の修正と計算ロジックの改善',
+    type: 'patch',
+    changes: [
+      'PCブラウザの自動翻訳機能による日本語の乱れを防止（翻訳無効化設定の追加）',
+      '評価のクレーム等のマイナス計算が一部の集計（一括印刷等）で反映されない不具合を修正'
+    ]
+  },
+  {
     version: '2.2.0',
     date: '2026-03-04',
     title: '評価UIの改善とグラフの調整',

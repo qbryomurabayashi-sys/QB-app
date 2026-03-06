@@ -697,9 +697,9 @@ export default function App() {
               const its = data.items;
               const pScore = data.performanceScore || 0;
               const comp = data.comparison;
-              const relScore = its.filter((i: any) => i.category === '関係性').reduce((sum: number, i: any) => sum + (i.score || 0), 0);
-              const csScore = its.filter((i: any) => i.category === '接客').reduce((sum: number, i: any) => sum + (i.score || 0), 0);
-              const techScore = its.filter((i: any) => i.category === '技術').reduce((sum: number, i: any) => sum + (i.score || 0), 0);
+              const relScore = its.filter((i: any) => i.category === '関係性').reduce((sum: number, i: any) => sum + (i.score !== null ? i.score : 0), 0);
+              const csScore = its.filter((i: any) => i.category === '接客').reduce((sum: number, i: any) => sum + (i.score !== null ? i.score : 0), 0);
+              const techScore = its.filter((i: any) => i.category === '技術').reduce((sum: number, i: any) => sum + (i.score !== null ? i.score : 0), 0);
               const totScore = relScore + csScore + techScore + pScore;
               const mgrUnlocked = its.some((i: any) => i.category === '店長' && i.score !== null);
               const pf = m.performance || { monthlyCuts: [], excludedFromAverage: [], goalCuts: 0 };

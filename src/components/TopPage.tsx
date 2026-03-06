@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Store, User, Plus, Trash2, History, ChevronRight, Upload, Download, Layers, BookOpen, Menu, X, HelpCircle, Info } from 'lucide-react';
+import { Store, User, Plus, Trash2, History, ChevronRight, Upload, Download, Layers, BookOpen, Menu, X, HelpCircle, Info, ArrowLeft } from 'lucide-react';
 import { StaffSummary } from '../types';
 
 interface TopPageProps {
@@ -13,11 +13,12 @@ interface TopPageProps {
   onOperationGuide: () => void;
   onBackup: () => void;
   onRestore: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBackToDashboard: () => void;
 }
 
 export const TopPage: React.FC<TopPageProps> = ({ 
   staffList, onSelect, onCreate, onDelete, onBatchPrint, onActionPlan, 
-  onVersionInfo, onOperationGuide, onBackup, onRestore 
+  onVersionInfo, onOperationGuide, onBackup, onRestore, onBackToDashboard
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -37,6 +38,9 @@ export const TopPage: React.FC<TopPageProps> = ({
       <header className="bg-[#00205b] text-white p-4 shadow-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
+            <button onClick={onBackToDashboard} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <ArrowLeft size={24} />
+            </button>
             <Store className="text-blue-400" size={28} />
             <h1 className="text-xl font-bold">QB総合ツール</h1>
           </div>
