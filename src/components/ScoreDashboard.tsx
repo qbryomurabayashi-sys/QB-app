@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { EvaluationItem, PerformanceData } from '../types';
 
 interface ScoreDashboardProps {
@@ -36,65 +37,104 @@ export const ScoreDashboard: React.FC<ScoreDashboardProps> = ({ items, performan
   const mgrCol3 = mgrProb; // 問題解決
   const mgrCol4 = mgrPersonal + mgrComp; // その他(行動・コンプラ)
 
-  return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 font-sans text-gray-800">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 screen-view-container p-2">
-        {/* スタッフ評価 */}
-        <div className="mb-2">
-          <h3 className="text-sm font-bold text-gray-500 mb-2 pl-1">スタッフ評価</h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-0 border border-gray-300 rounded overflow-hidden">
-            <div className="flex flex-col items-center justify-center p-3 border-b md:border-b-0 border-r border-gray-300 bg-gray-50">
-              <span className="font-bold text-gray-500 text-xs mb-1">関係性<br />(51点)</span>
-              <span className="font-bold text-2xl text-gray-800">{relationshipScore}</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-3 border-b md:border-b-0 border-r border-gray-300 bg-gray-50">
-              <span className="font-bold text-gray-500 text-xs mb-1">接客<br />(49点)</span>
-              <span className="font-bold text-2xl text-gray-800">{customerServiceScore}</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-3 border-b md:border-b-0 border-r border-gray-300 bg-gray-50">
-              <span className="font-bold text-gray-500 text-xs mb-1">技術(日常)<br />(50点)</span>
-              <span className="font-bold text-2xl text-gray-800">{technicalScore}</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-3 border-b md:border-b-0 border-r border-gray-300 bg-gray-50">
-              <span className="font-bold text-gray-500 text-xs mb-1">カット人数<br />(50点)</span>
-              <span className="font-bold text-2xl text-gray-800">{performanceScore}</span>
-            </div>
-            <div className="flex flex-col items-center justify-center p-3 bg-blue-50 md:col-span-1 col-span-2">
-              <span className="font-bold text-blue-800 text-xs mb-1">評価合計<br />(200点)</span>
-              <span className="font-bold text-3xl text-blue-600">{totalScore200}</span>
-            </div>
-          </div>
+  const Meter = ({ label, score, max, color = 'bg-ff-emerald' }: { label: string, score: number, max: number, color?: string }) => {
+    const percentage = Math.max(0, Math.min(100, (score / max) * 100));
+    return (
+      <div className="mb-6 font-display">
+        <div className="flex justify-between text-xs mb-2 uppercase tracking-widest">
+          <span className="text-ff-silver/60 text-sm">{label}</span>
+          <span className="text-ff-silver text-sm">{score} / {max}</span>
         </div>
+        <div className="ff-gauge-bg h-4">
+          <div 
+            className={`ff-gauge-fill h-full ${color} transition-all duration-1000 ease-out`}
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+      </div>
+    );
+  };
 
-        {/* 店長評価 */}
-        {isManagerUnlocked && (
+  return (
+    <div className="w-full max-w-5xl mx-auto space-y-8">
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="ff-window p-10 relative overflow-hidden"
+      >
+        {/* Decorative Background Element */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-ff-gold/5 rounded-full -mr-40 -mt-40 blur-3xl pointer-events-none" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 relative z-10">
+          {/* HERO_STATS */}
           <div>
-            <h3 className="text-sm font-bold text-gray-500 mb-2 pl-1">店長評価</h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-0 border border-gray-300 rounded overflow-hidden">
-              <div className="flex flex-col items-center justify-center p-3 border-b md:border-b-0 border-r border-gray-300 bg-gray-50">
-                <span className="font-bold text-gray-500 text-xs mb-1 text-center">運営・顧客<br />(32点)</span>
-                <span className="font-bold text-2xl text-gray-800">{mgrCol1}</span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-3 border-b md:border-b-0 border-r border-gray-300 bg-gray-50">
-                <span className="font-bold text-gray-500 text-xs mb-1 text-center">チーム・戦略<br />(28点)</span>
-                <span className="font-bold text-2xl text-gray-800">{mgrCol2}</span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-3 border-b md:border-b-0 border-r border-gray-300 bg-gray-50">
-                <span className="font-bold text-gray-500 text-xs mb-1 text-center">問題解決<br />(24点)</span>
-                <span className="font-bold text-2xl text-gray-800">{mgrCol3}</span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-3 border-b md:border-b-0 border-r border-gray-300 bg-gray-50">
-                <span className="font-bold text-gray-500 text-xs mb-1 text-center">行動・他<br />(56点)</span>
-                <span className="font-bold text-2xl text-gray-800">{mgrCol4}</span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-3 bg-blue-50 md:col-span-1 col-span-2">
-                <span className="font-bold text-blue-800 text-xs mb-1 text-center">店長合計<br />(140点)</span>
-                <span className="font-bold text-3xl text-blue-600">{managerTotal}</span>
+            <div className="flex items-center gap-4 mb-8 border-b border-ff-silver/20 pb-4">
+              <div className="w-3 h-3 bg-ff-emerald rounded-full animate-pulse" />
+              <span className="text-lg font-display font-bold text-ff-gold uppercase tracking-[0.2em]">英雄の属性</span>
+            </div>
+            <div className="space-y-6">
+              <Meter label="関係性・絆" score={relationshipScore} max={51} />
+              <Meter label="接客の極み" score={customerServiceScore} max={49} color="bg-ff-sky" />
+              <Meter label="技術の練度" score={technicalScore} max={50} color="bg-ff-gold" />
+              <Meter label="戦いの成果" score={performanceScore} max={50} color="bg-ff-red" />
+              
+              <div className="pt-8 mt-8 border-t border-ff-silver/20">
+                <div className="flex justify-between items-end">
+                  <div className="space-y-2">
+                    <span className="text-xs text-ff-silver/40 uppercase font-display tracking-widest block">合計パワーレベル</span>
+                    <span className="text-ff-gold font-display font-bold text-lg tracking-widest">クリスタル共鳴</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-6xl font-display font-bold text-white leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">{totalScore200}</span>
+                    <span className="text-lg text-ff-silver/60 ml-3 font-display">/ 200</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* COMMANDER_STATS */}
+          {isManagerUnlocked ? (
+            <motion.div
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="flex items-center gap-4 mb-8 border-b border-ff-silver/20 pb-4">
+                <div className="w-3 h-3 bg-ff-gold rounded-full animate-pulse" />
+                <span className="text-lg font-display font-bold text-ff-gold uppercase tracking-[0.2em]">指揮官の資質</span>
+              </div>
+              <div className="space-y-6">
+                <Meter label="統治と奉仕" score={mgrCol1} max={32} color="bg-ff-gold" />
+                <Meter label="軍団と戦略" score={mgrCol2} max={28} color="bg-ff-gold" />
+                <Meter label="賢者の知恵" score={mgrCol3} max={24} color="bg-ff-gold" />
+                <Meter label="名誉と規律" score={mgrCol4} max={56} color="bg-ff-gold" />
+                
+                <div className="pt-8 mt-8 border-t border-ff-silver/20">
+                  <div className="flex justify-between items-end">
+                    <div className="space-y-2">
+                      <span className="text-xs text-ff-silver/40 uppercase font-display tracking-widest block">指導者ランク</span>
+                      <span className="text-ff-gold font-display font-bold text-lg tracking-widest">指揮効率</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-6xl font-display font-bold text-ff-gold leading-none drop-shadow-[0_0_15px_rgba(212,175,55,0.4)]">{managerTotal}</span>
+                      <span className="text-lg text-ff-silver/60 ml-3 font-display">/ 140</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full border-2 border-dashed border-ff-silver/10 bg-black/20 p-16 text-center rounded-lg">
+              <div className="w-20 h-20 rounded-full border-2 border-ff-silver/20 flex items-center justify-center mb-6">
+                <span className="text-4xl text-ff-silver/20">🔒</span>
+              </div>
+              <div className="text-ff-silver/40 text-lg font-display font-bold uppercase tracking-[0.2em] mb-4">指揮官データ封印中</div>
+              <div className="text-ff-silver/20 text-sm uppercase italic">「王家の紋章を持つ者のみが、この記録を閲覧できます。」</div>
+            </div>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Store, History, Download, Printer, RefreshCw, Lock,
   ArrowUp, Save, BarChart3, ChevronDown, ChevronUp, Layers, Users
@@ -21,6 +22,7 @@ import { ScheduleAlert } from './components/ScheduleAlert';
 import { ActionPlan } from './components/ActionPlan';
 import { VersionInfo } from './components/VersionInfo';
 import { OperationGuide } from './components/OperationGuide';
+import { FantasyLoader } from './components/FantasyLoader';
 
 const STAFF_INDEX_KEY = 'qb_staff_index_v1';
 const DATA_PREFIX = 'qb_data_';
@@ -48,8 +50,9 @@ const mergeWithInitialItems = (savedItems: any[]) => {
 const ScrollToTopButton = () => {
   const scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); };
   return (
-    <button onClick={scrollToTop} className="fixed bottom-6 right-4 bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-gray-700 transition-colors z-40 no-print opacity-80">
-      <ArrowUp size={20} />
+    <button onClick={scrollToTop} className="fixed bottom-6 right-4 ff-window !p-4 text-ff-gold shadow-2xl hover:scale-110 transition-all z-40 no-print active:scale-95 group">
+      <span className="ff-cursor"></span>
+      <ArrowUp size={24} />
     </button>
   );
 };
@@ -81,6 +84,14 @@ export default function App() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [comparisonData, setComparisonData] = useState<any>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     try {
@@ -468,6 +479,10 @@ export default function App() {
     }
   };
 
+  if (isLoading) {
+    return <FantasyLoader />;
+  }
+
   if (viewMode === 'TOP') {
     return (
       <TopPage
@@ -553,100 +568,113 @@ export default function App() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg sm:max-w-2xl flex flex-col relative">
-      <ScrollToTopButton />
+    <>
+      <AnimatePresence mode="wait">
+        {isLoading && <FantasyLoader key="loader" />}
+      </AnimatePresence>
 
-      <div className="bg-white sticky top-0 z-50 shadow-md print:hidden">
-        <div className="p-3 flex justify-between items-center bg-blue-900 text-white gap-2">
-          <div className="flex items-center gap-2 overflow-hidden">
-            <button onClick={() => setViewMode('TOP')} className="flex flex-col sm:flex-row items-center gap-1 p-2 hover:bg-blue-800 rounded-lg transition-colors flex-shrink-0">
-              <Store size={24} />
-              <span className="text-[10px] sm:text-xs font-bold leading-tight">TOPへ<br className="sm:hidden" />戻る</span>
+      {!isLoading && (
+        <div className="max-w-md mx-auto min-h-screen border-x-[6px] border-ff-gold/30 bg-gradient-to-b from-blue-900 to-black sm:max-w-2xl flex flex-col relative overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+          <div className="mist-container">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="mist-particle" style={{ width: '300px', height: '300px', left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${i * 2}s` }} />
+            ))}
+          </div>
+          <ScrollToTopButton />
+
+      <div className="sticky top-0 z-50 print:hidden">
+        <div className="ff-window !p-4 !border-t-0 !border-x-0 flex justify-between items-center gap-4">
+          <div className="flex items-center gap-4 overflow-hidden group">
+            <button onClick={() => setViewMode('TOP')} className="relative flex flex-col sm:flex-row items-center gap-2 p-2 hover:text-white transition-colors flex-shrink-0">
+              <span className="ff-cursor"></span>
+              <Store size={28} className="text-ff-gold" />
+              <span className="text-xs sm:text-sm font-display font-bold leading-tight uppercase text-ff-silver">ワールドマップ</span>
             </button>
-            <h1 className="text-sm sm:text-lg font-bold truncate">QB総合ツール</h1>          </div>
-          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-2xl font-display font-bold truncate tracking-widest uppercase text-ff-gold">クリスタル・レコード</h1>
+          </div>
+          <div className="flex items-center gap-3">
             {isReadOnly && (
-              <button onClick={handleEditMode} className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1">
-                <Lock size={14} /> 閲覧中(解除)
+              <button onClick={handleEditMode} className="bg-ff-parchment text-gray-900 px-4 py-2 border-2 border-[#8B4513] text-sm font-bold flex items-center gap-2 shadow-md">
+                <Lock size={16} /> 封印中
               </button>
             )}
-            <button onClick={() => setIsHistoryOpen(true)} className="p-2 hover:bg-blue-800 rounded transition-colors" title="履歴">
-              <History size={20} />
+            <button onClick={() => setIsHistoryOpen(true)} className="p-2 text-ff-silver hover:text-white transition-colors group" title="履歴">
+              <History size={24} />
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4 p-2 overflow-x-auto">
-          <button onClick={() => { if (currentId) saveToStorage(currentId, metadata, items, performanceScore); alert("保存しました"); }} className="flex flex-col items-center justify-center text-[10px] hover:bg-gray-100 p-1.5 rounded min-w-[40px] transition-colors">
-            <Save size={18} className="text-blue-600" />
-            <span className="text-gray-600">保存</span>
+        <div className="flex items-center gap-3 sm:gap-6 p-3 overflow-x-auto bg-black/40 border-b border-ff-silver/20 backdrop-blur-md">
+          <button onClick={() => { if (currentId) saveToStorage(currentId, metadata, items, performanceScore); alert("記録を保存しました"); }} className="ff-button !px-4 !py-2 text-xs flex flex-col items-center min-w-[60px]">
+            <Save size={20} />
+            <span>保存</span>
           </button>
-          <button onClick={handleDownloadCSV} className="flex flex-col items-center justify-center text-[10px] hover:bg-gray-100 p-1.5 rounded min-w-[40px] transition-colors">
-            <Download size={18} className="text-blue-600" />
-            <span className="text-gray-600">CSV</span>
+          <button onClick={() => { if (confirm("記録を初期化しますか？")) { setItems(INITIAL_ITEMS); setPerformanceScore(0); } }} className="ff-button !px-4 !py-2 text-xs flex flex-col items-center min-w-[60px]">
+            <RefreshCw size={20} />
+            <span>初期化</span>
           </button>
-          <button onClick={handleDownloadAllCSV} className="flex flex-col items-center justify-center text-[10px] hover:bg-gray-100 p-1.5 rounded min-w-[40px] transition-colors">
-            <Users size={18} className="text-blue-600" />
-            <span className="text-gray-600">一覧CSV</span>
+          <button onClick={handleDownloadCSV} className="ff-button !px-4 !py-2 text-xs flex flex-col items-center min-w-[60px]">
+            <Download size={20} />
+            <span>CSV</span>
           </button>
-          <button onClick={handleBatchPrint} className="flex flex-col items-center justify-center text-[10px] hover:bg-gray-100 p-1.5 rounded min-w-[40px] transition-colors">
-            <Layers size={18} className="text-blue-600" />
-            <span className="text-gray-600">一括印刷</span>
+          <button onClick={() => window.print()} className="ff-button !px-4 !py-2 text-xs flex flex-col items-center min-w-[60px]">
+            <Printer size={20} />
+            <span>印刷</span>
           </button>
-          <button onClick={handlePrint} className="flex flex-col items-center justify-center text-[10px] hover:bg-gray-100 p-1.5 rounded min-w-[40px] transition-colors">
-            <Printer size={18} className="text-blue-600" />
-            <span className="text-gray-600">印刷</span>
+          <button onClick={() => setIsBatchPrinting(true)} className="ff-button !px-4 !py-2 text-xs flex flex-col items-center min-w-[60px]">
+            <Layers size={20} />
+            <span>一括</span>
           </button>
         </div>
       </div>
 
       <ScheduleAlert date={metadata.date} />
 
-      <div className="bg-gray-50 border-b print:hidden">
-        <div className={`overflow-hidden transition-all duration-300 ${isDashboardCollapsed ? 'max-h-0' : 'max-h-[500px]'}`}>
-          <div className="p-2 sm:p-4">
+      <div className="print:hidden">
+        <div className={`overflow-hidden transition-all duration-500 ${isDashboardCollapsed ? 'max-h-0' : 'max-h-[800px]'}`}>
+          <div className="p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
             <ScoreDashboard items={items} performanceScore={performanceScore} performanceData={metadata.performance} isManagerUnlocked={isStoreManagerUnlocked} />
           </div>
         </div>
-        <button onClick={() => setIsDashboardCollapsed(!isDashboardCollapsed)} className="w-full flex justify-center items-center py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 border-t border-b border-gray-300 font-bold text-xs transition-all">
-          {isDashboardCollapsed ? "スコア内訳・詳細を表示 ↓" : "閉じる ↑"}
+        <button onClick={() => setIsDashboardCollapsed(!isDashboardCollapsed)} className="w-full flex justify-center items-center py-3 bg-gradient-to-r from-transparent via-ff-silver/10 to-transparent hover:via-ff-silver/20 text-ff-gold font-display font-bold text-sm transition-all uppercase tracking-widest border-y border-ff-silver/20">
+          {isDashboardCollapsed ? "▼ ステータス画面を表示" : "▲ ステータス画面を隠す"}
         </button>
       </div>
 
-      <section className="p-3 sm:p-5 border-b bg-white print:hidden">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div className="grid grid-cols-2 gap-3 sm:col-span-2">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 mb-1">店舗名</label>
-              <input type="text" value={metadata.store} onChange={(e) => setMetadata({ ...metadata, store: e.target.value })} className="w-full border-b-2 border-gray-100 p-1 text-sm outline-none focus:border-blue-500 disabled:bg-gray-100" placeholder="店舗名" disabled={isReadOnly} />
+      <section className="p-4 sm:p-6 border-b border-ff-silver/20 print:hidden">
+        <div className="ff-parchment grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 !p-6">
+          <div className="grid grid-cols-2 gap-4 sm:col-span-2">
+            <div className="relative">
+              <label className="block text-xs font-bold text-[#8B4513] mb-2 uppercase tracking-wider">所属王国（店舗名）</label>
+              <input type="text" value={metadata.store} onChange={(e) => setMetadata({ ...metadata, store: e.target.value })} className="w-full bg-transparent border-b-2 border-[#8B4513]/30 focus:border-[#8B4513] outline-none text-base uppercase px-1 py-2" placeholder="店舗名を入力" disabled={isReadOnly} />
             </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 mb-1">スタッフ氏名</label>
-              <input type="text" value={metadata.name} onChange={(e) => setMetadata({ ...metadata, name: e.target.value })} className="w-full border-b-2 border-gray-100 p-1 text-sm font-bold outline-none focus:border-blue-500 disabled:bg-gray-100" placeholder="氏名" disabled={isReadOnly} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 mb-1">社員番号 (半角英数)</label>
-              <input type="text" value={metadata.employeeId} onChange={(e) => { const v = e.target.value; if (/^[a-zA-Z0-9]*$/.test(v)) setMetadata({ ...metadata, employeeId: v }); }} className="w-full border-b-2 border-gray-100 p-1 text-sm outline-none focus:border-blue-500 disabled:bg-gray-100" disabled={isReadOnly} />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 mb-1">評価者</label>
-              <input type="text" value={metadata.evaluator} onChange={(e) => setMetadata({ ...metadata, evaluator: e.target.value })} className="w-full border-b-2 border-gray-100 p-1 text-sm outline-none focus:border-blue-500 disabled:bg-gray-100" disabled={isReadOnly} />
+            <div className="relative">
+              <label className="block text-xs font-bold text-[#8B4513] mb-2 uppercase tracking-wider">英雄の姓名（スタッフ氏名）</label>
+              <input type="text" value={metadata.name} onChange={(e) => setMetadata({ ...metadata, name: e.target.value })} className="w-full bg-transparent border-b-2 border-[#8B4513]/30 focus:border-[#8B4513] outline-none text-lg font-bold uppercase px-1 py-2" placeholder="氏名を入力" disabled={isReadOnly} />
             </div>
           </div>
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 mb-1">日付</label>
-            <input type="date" value={metadata.date} onChange={(e) => setMetadata({ ...metadata, date: e.target.value })} className="w-full border-b-2 border-gray-100 p-1 text-sm outline-none focus:border-blue-500 disabled:bg-gray-100" disabled={isReadOnly} />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="relative">
+              <label className="block text-xs font-bold text-[#8B4513] mb-2 uppercase tracking-wider">ギルド階級（社員番号）</label>
+              <input type="text" value={metadata.employeeId} onChange={(e) => { const v = e.target.value; if (/^[a-zA-Z0-9]*$/.test(v)) setMetadata({ ...metadata, employeeId: v }); }} className="w-full bg-transparent border-b-2 border-[#8B4513]/30 focus:border-[#8B4513] outline-none text-base uppercase px-1 py-2" placeholder="番号を入力" disabled={isReadOnly} />
+            </div>
+            <div className="relative">
+              <label className="block text-xs font-bold text-[#8B4513] mb-2 uppercase tracking-wider">賢者の姓名（評価者）</label>
+              <input type="text" value={metadata.evaluator} onChange={(e) => setMetadata({ ...metadata, evaluator: e.target.value })} className="w-full bg-transparent border-b-2 border-[#8B4513]/30 focus:border-[#8B4513] outline-none text-base uppercase px-1 py-2" placeholder="評価者名を入力" disabled={isReadOnly} />
+            </div>
+          </div>
+          <div className="relative">
+            <label className="block text-xs font-bold text-[#8B4513] mb-2 uppercase tracking-wider">年代記の日付（評価日）</label>
+            <input type="date" value={metadata.date} onChange={(e) => setMetadata({ ...metadata, date: e.target.value })} className="w-full bg-transparent border-b-2 border-[#8B4513]/30 focus:border-[#8B4513] outline-none text-base px-1 py-2" disabled={isReadOnly} />
           </div>
         </div>
       </section>
 
-      <section className="bg-gray-50 border-b print:hidden">
-        <button onClick={() => setIsChartCollapsed(!isChartCollapsed)} className="w-full flex justify-between items-center p-3 bg-white border-b border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors">
-          <span className="flex items-center gap-2"><BarChart3 size={20} className="text-blue-600" />評価分析チャート</span>
-          {isChartCollapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+      <section className="print:hidden">
+        <button onClick={() => setIsChartCollapsed(!isChartCollapsed)} className="w-full flex justify-between items-center p-4 bg-gradient-to-r from-ff-blue-top to-transparent text-ff-gold font-display font-bold text-sm hover:from-blue-800 transition-colors uppercase tracking-widest border-b border-ff-silver/20">
+          <span className="flex items-center gap-3"><BarChart3 size={24} /> クリスタル共鳴レーダー</span>
+          {isChartCollapsed ? <ChevronDown size={24} /> : <ChevronUp size={24} />}
         </button>
-        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isChartCollapsed ? 'max-h-0' : 'max-h-[800px]'}`}>
+        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isChartCollapsed ? 'max-h-0' : 'max-h-[800px]'}`}>
           <div className="p-2 sm:p-4">
             <ChartSection
               items={items}
@@ -659,27 +687,31 @@ export default function App() {
         </div>
       </section>
 
-      <div className="flex z-40 bg-white shadow-sm overflow-x-auto no-print border-b">
+      <div className="flex z-40 bg-black/60 backdrop-blur-md shadow-sm overflow-x-auto no-print border-y border-ff-silver/20">
         {CATEGORIES.map((cat) => (
-          <button key={cat} onClick={() => handleTabChange(cat)} className={`flex-1 py-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap flex items-center justify-center gap-1 ${activeTab === cat ? 'border-blue-800 text-blue-900 bg-blue-50/50' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
+          <button key={cat} onClick={() => handleTabChange(cat)} className={`flex-1 py-5 px-6 text-xs font-display font-bold border-b-4 transition-all whitespace-nowrap flex items-center justify-center gap-2 uppercase tracking-widest group relative ${activeTab === cat ? 'border-ff-gold text-white bg-blue-900/40' : 'border-transparent text-ff-silver hover:text-white'}`}>
+            <span className="ff-cursor !-left-4"></span>
             {cat}{cat === '店長' && !isStoreManagerUnlocked && <Lock size={12} />}
           </button>
         ))}
       </div>
 
-      <main className="p-2 sm:p-4 pb-4 flex-grow bg-gray-50 print:bg-white print:p-0">
+      <main className="p-2 sm:p-4 pb-4 flex-grow print:bg-white print:p-0">
         <div className="print:hidden">
           <CriteriaGuide />
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end mb-6">
             <button onClick={() => {
-              if (window.confirm(`${activeTab}評価をリセットしますか？`)) {
+              if (window.confirm(`${activeTab}のデータを浄化（リセット）しますか？`)) {
                 if (activeTab === '実績') {
                   setMetadata(p => ({ ...p, performance: { ...p.performance, monthlyCuts: new Array(12).fill(0) } })); setPerformanceScore(5);
                 } else {
                   setItems(p => p.map(i => i.category === activeTab ? { ...i, score: [34, 58, 59].includes(i.no) ? 0 : null, memo: '', incidents: [] } : i));
                 }
               }
-            }} className="text-xs flex items-center gap-1 text-gray-400 hover:text-red-500 bg-white px-2 py-1 rounded shadow-sm border"><RefreshCw size={12} /> この項目をリセット</button>
+            }} className="ff-button !px-4 !py-2 text-xs flex items-center gap-2 group">
+              <span className="ff-cursor !-left-4"></span>
+              <RefreshCw size={14} /> カテゴリを浄化
+            </button>
           </div>
           {activeTab === '実績' ? (
             <PerformanceEvaluation data={metadata.performance} onChange={handlePerformanceUpdate} onScoreUpdate={setPerformanceScore} readOnly={isReadOnly} />
@@ -709,38 +741,39 @@ export default function App() {
                 <div key={idx} className="page-break">
                   <div className="border-b-2 border-gray-800 pb-2 mb-2 flex justify-between items-end">
                     <div>
-                      <h1 className="text-xl font-bold text-gray-900">評価フィードバックシート</h1>
-                      <p className="text-gray-500 text-xs">QB総合ツール</p>                    </div>
-                    <div className="text-right text-xs">
-                      <p>店舗: <span className="font-bold border-b border-gray-400 px-2">{m.store}</span> / 氏名: <span className="font-bold border-b border-gray-400 px-2">{m.name}</span></p>
-                      <p>評価日: {m.date}</p>
+                      <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-widest">評価フィードバックシート</h1>
+                      <p className="text-gray-500 text-xs uppercase">クリスタル・レコード V2.300</p>
+                    </div>
+                    <div className="text-right text-xs uppercase">
+                      <p>所属: <span className="font-bold border-b border-gray-400 px-2">{m.store}</span> / 氏名: <span className="font-bold border-b border-gray-400 px-2">{m.name}</span></p>
+                      <p>記録日: {m.date}</p>
                     </div>
                   </div>
 
-                  <div className="mb-4 border border-gray-300 rounded p-3 bg-gray-50">
+                  <div className="mb-6 border border-gray-300 rounded p-4 bg-gray-50">
                     <div className="flex justify-between items-center">
-                      <div className="text-center px-6 border-r border-gray-300 min-w-[140px]">
-                        <p className="text-[9pt] text-gray-500 font-bold">総合スコア</p>
-                        <p className="text-4xl font-bold text-gray-900 leading-none mt-1">{totScore}<span className="text-sm font-normal ml-1">点</span></p>
+                      <div className="text-center px-8 border-r border-gray-300 min-w-[180px]">
+                        <p className="text-sm text-gray-500 font-bold uppercase">総合共鳴率</p>
+                        <p className="text-5xl font-bold text-gray-900 leading-none mt-2">{totScore}<span className="text-lg font-normal ml-1">%</span></p>
                         {comp && (
-                          <div className="mt-1 text-xs text-gray-500">
-                            (前回: <span className="font-bold text-gray-700">{comp.performanceScore + (comp.items?.reduce((s: number, i: any) => s + (i.score ?? 0), 0) || 0)}</span>点)
+                          <div className="mt-2 text-xs text-gray-500 uppercase">
+                            (前回: <span className="font-bold text-gray-700">{comp.performanceScore + (comp.items?.reduce((s: number, i: any) => s + (i.score ?? 0), 0) || 0)}</span>%)
                           </div>
                         )}
                       </div>
-                      <div className="text-center px-4 flex-grow">
+                      <div className="text-center px-6 flex-grow">
                         <div className="flex justify-around items-center h-full">
                           <div>
-                            <p className="text-[8pt] text-gray-500">カット実績累計</p>
-                            <p className="text-xl font-bold">{currentTotal.toLocaleString()}名</p>
+                            <p className="text-xs text-gray-500 uppercase">累計カット数</p>
+                            <p className="text-2xl font-bold">{currentTotal.toLocaleString()}</p>
                           </div>
-                          <div className="border-l border-gray-200 pl-6">
-                            <p className="text-[8pt] text-gray-500">年間着地予想</p>
-                            <p className="text-xl font-bold text-blue-700">{predictedTotal.toLocaleString()}名</p>
+                          <div className="border-l border-gray-200 pl-8">
+                            <p className="text-xs text-gray-500 uppercase">年間予測</p>
+                            <p className="text-2xl font-bold text-blue-700">{predictedTotal.toLocaleString()}</p>
                           </div>
-                          <div className="border-l border-gray-200 pl-6">
-                            <p className="text-[8pt] text-gray-500">目標達成率(予)</p>
-                            <p className="text-xl font-bold text-gray-700">
+                          <div className="border-l border-gray-200 pl-8">
+                            <p className="text-xs text-gray-500 uppercase">目標達成率</p>
+                            <p className="text-2xl font-bold text-gray-700">
                               {pf.goalCuts > 0 ? Math.round((predictedTotal / pf.goalCuts) * 100) : 0}%
                             </p>
                           </div>
@@ -749,62 +782,62 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-12 gap-0 text-[8pt] border-t border-l border-gray-300 mb-4">
+                  <div className="grid grid-cols-12 gap-0 text-xs border-t border-l border-gray-300 mb-6">
                     {MONTH_LABELS.map((mon) => (
-                      <div key={mon} className="col-span-1 border-r border-b border-gray-300 text-center bg-gray-100 font-bold py-1">{mon}</div>
+                      <div key={mon} className="col-span-1 border-r border-b border-gray-300 text-center bg-gray-100 font-bold py-2 uppercase">{mon}</div>
                     ))}
                     {(pf.monthlyCuts || new Array(12).fill(0)).map((c: number, i: number) => (
-                      <div key={i} className="col-span-1 border-r border-b border-gray-300 text-center py-1">{c || '-'}</div>
+                      <div key={i} className="col-span-1 border-r border-b border-gray-300 text-center py-2">{c || '-'}</div>
                     ))}
                   </div>
 
-                  <div className={`grid ${mgrUnlocked ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mb-4 mt-4`}>
-                    <div className="border border-gray-300 rounded p-2 bg-white flex flex-col items-center print-chart-box">
-                      <h3 className="text-[9pt] font-bold text-gray-600 text-center mb-1">スタッフ評価</h3>
+                  <div className={`grid ${mgrUnlocked ? 'grid-cols-3' : 'grid-cols-2'} gap-4 mb-6 mt-6`}>
+                    <div className="border border-gray-300 rounded p-4 bg-white flex flex-col items-center print-chart-box">
+                      <h3 className="text-sm font-bold text-gray-600 text-center mb-2 uppercase tracking-widest">英雄の共鳴レーダー</h3>
                       <div className="print-chart-container">
                         <PrintChartSection items={its} performanceData={pf} performanceScore={pScore} type="radar" comparisonItems={comp?.items} comparisonPerformanceScore={comp?.performanceScore} />
                       </div>
                     </div>
                     {mgrUnlocked && (
-                      <div className="border border-gray-300 rounded p-2 bg-white flex flex-col items-center print-chart-box">
-                        <h3 className="text-[9pt] font-bold text-gray-600 text-center mb-1">店長スキル</h3>
+                      <div className="border border-gray-300 rounded p-4 bg-white flex flex-col items-center print-chart-box">
+                        <h3 className="text-sm font-bold text-gray-600 text-center mb-2 uppercase tracking-widest">指揮官の練度</h3>
                         <div className="print-chart-container">
                           <PrintChartSection items={its} performanceData={pf} performanceScore={pScore} type="manager-radar" comparisonItems={comp?.items} />
                         </div>
                       </div>
                     )}
-                    <div className="border border-gray-300 rounded p-2 bg-white flex flex-col items-center print-chart-box">
-                      <h3 className="text-[9pt] font-bold text-gray-600 text-center mb-1">月別カット推移</h3>
+                    <div className="border border-gray-300 rounded p-4 bg-white flex flex-col items-center print-chart-box">
+                      <h3 className="text-sm font-bold text-gray-600 text-center mb-2 uppercase tracking-widest">月間カット推移</h3>
                       <div className="print-chart-container">
                         <PrintChartSection items={its} performanceData={pf} performanceScore={pScore} type="line" />
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 mb-2">
-                    <h2 className="text-lg font-bold text-gray-800 border-b border-gray-800 pb-1 mb-2">評価詳細 & メモ</h2>
-                    <div className="print-grid-cols-3 text-[7pt]">
+                  <div className="mt-6 mb-4">
+                    <h2 className="text-xl font-bold text-gray-800 border-b border-gray-800 pb-2 mb-4 uppercase tracking-widest">評価ログ ＆ メモ</h2>
+                    <div className="print-grid-cols-3 text-xs">
                       {its.filter((item: any) => item.score !== null).map((item: any) => (
                         <div key={item.no} className="detail-item-box">
                           <div className="flex justify-between items-start">
                             <div className="w-[85%] detail-item-text">
-                              <span className="font-bold text-gray-500 mr-1 text-[7pt]">{item.no}.</span>
-                              <span className="font-bold text-gray-800">{item.item}</span>
-                              <span className="text-[6pt] text-gray-500 ml-1">({item.subCategory})</span>
+                              <span className="font-bold text-gray-500 mr-1 text-xs">{item.no}.</span>
+                              <span className="font-bold text-gray-800 uppercase">{item.item}</span>
+                              <span className="text-[10px] text-gray-500 ml-1 uppercase">({item.subCategory})</span>
                             </div>
                             <div className="font-bold text-blue-800 detail-item-score">{item.score}/{item.max}</div>
                           </div>
                           {item.memo && (
-                            <div className="mt-1 p-1 bg-gray-50 border border-gray-200 rounded text-[6pt] text-gray-800 break-words">
-                              <span className="font-bold mr-1 text-gray-600">Memo:</span>{item.memo}
+                            <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded text-[10px] text-gray-800 break-words">
+                              <span className="font-bold mr-1 text-gray-600 uppercase tracking-tighter">メモ:</span>{item.memo}
                             </div>
                           )}
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div className="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-3 h-32 break-inside-avoid">
-                    <p className="text-[8pt] font-bold text-gray-500 mb-1">メモ・総評</p>
+                  <div className="mt-6 border-2 border-dashed border-gray-300 rounded-lg p-4 h-40 break-inside-avoid">
+                    <p className="text-sm font-bold text-gray-500 mb-2 uppercase tracking-widest">指揮官の最終総評</p>
                   </div>
                 </div>
               );
@@ -823,6 +856,8 @@ export default function App() {
         metadata={metadata}
       />
       <PasswordModal isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} onUnlock={() => { setIsStoreManagerUnlocked(true); setActiveTab('店長'); }} />
-    </div>
+        </div>
+      )}
+    </>
   );
 }

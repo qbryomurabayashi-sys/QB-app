@@ -5,60 +5,61 @@ export const CriteriaGuide = () => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (
-    <div className="mx-2 sm:mx-4 mb-4 rounded-xl overflow-hidden print-break-inside-avoid shadow-sm">
+    <div className="mx-2 sm:mx-4 mb-6 overflow-hidden print-break-inside-avoid font-serif">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full p-4 flex justify-between items-center text-sm sm:text-base font-bold transition-all duration-200 border-2 ${isOpen
-          ? 'bg-blue-800 text-white border-blue-900'
-          : 'bg-white text-blue-900 border-dashed border-blue-300 hover:border-blue-50 hover:bg-blue-50'
+        className={`w-full p-5 flex justify-between items-center text-base sm:text-lg font-bold transition-all duration-300 border-2 rounded-sm relative group ${isOpen
+          ? 'bg-ff-blue-top text-white border-ff-silver/40'
+          : 'bg-black/40 text-ff-gold border-ff-silver/20 hover:border-ff-gold/50 hover:text-white'
           }`}
       >
-        <span className="flex items-center gap-2">
-          {isOpen ? <MinusCircle size={20} /> : <PlusCircle size={20} />}
-          <span>4段階評価基準ガイド{isOpen ? 'を閉じる' : 'を開く'}</span>
+        <span className="ff-cursor !-left-4"></span>
+        <span className="flex items-center gap-3 uppercase tracking-[0.2em]">
+          {isOpen ? <MinusCircle size={24} /> : <PlusCircle size={24} />}
+          <span>評価基準の導き V2.300 {isOpen ? '（閉じる）' : '（開く）'}</span>
         </span>
-        <ChevronDown size={20} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={24} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="p-4 text-xs sm:text-sm text-gray-800 space-y-4 bg-white border-x border-b border-gray-200 rounded-b-xl">
-          <div className="flex gap-3 items-start">
-            <span className="font-bold text-white bg-blue-700 px-2 py-1 rounded shrink-0 h-fit">3 優秀</span>
-            <div className="text-gray-700">
-              <ul className="list-disc list-inside space-y-1">
-                <li>非常に高い成果を達成している。期待を大きく上回るパフォーマンス。</li>
-                <li>新しいアイデアを提案し、周囲にも良い影響を及ぼす。</li>
+        <div className="p-6 text-sm sm:text-base text-ff-silver space-y-6 bg-black/60 border-x border-b border-ff-silver/20 rounded-b-sm backdrop-blur-md">
+          <div className="flex gap-4 items-start">
+            <span className="font-bold text-black bg-ff-sky px-3 py-1 shrink-0 h-fit uppercase rounded-sm text-xs">3_極めて優秀</span>
+            <div className="text-ff-silver/90">
+              <ul className="list-disc list-inside space-y-2 text-sm">
+                <li>期待を大きく上回る成果。高い共鳴率を維持。</li>
+                <li>自発的な行動。周囲にポジティブな影響を与える。</li>
               </ul>
             </div>
           </div>
-          <hr className="border-gray-100" />
-          <div className="flex gap-3 items-start">
-            <span className="font-bold text-white bg-sky-500 px-2 py-1 rounded shrink-0 h-fit">2 良好</span>
-            <div className="text-gray-700">
-              <ul className="list-disc list-inside space-y-1">
-                <li>期待される成果を達成している。定められた目標を満たしている。</li>
-                <li>定期的に安定したパフォーマンスを発揮。</li>
+          <hr className="border-ff-silver/10" />
+          <div className="flex gap-4 items-start">
+            <span className="font-bold text-black bg-ff-silver px-3 py-1 shrink-0 h-fit uppercase rounded-sm text-xs">2_標準的</span>
+            <div className="text-ff-silver/90">
+              <ul className="list-disc list-inside space-y-2 text-sm">
+                <li>標準的な手順を遵守。安定した成果。</li>
+                <li>現場での信頼性が高く、堅実な働き。</li>
               </ul>
             </div>
           </div>
-          <hr className="border-gray-100" />
-          <div className="flex gap-3 items-start">
-            <span className="font-bold text-white bg-orange-500 px-2 py-1 rounded shrink-0 h-fit">1 改善</span>
-            <div className="text-gray-700">
-              <ul className="list-disc list-inside space-y-1">
-                <li>基準に達していない。時折目標を達成するが、一貫性が欠ける。</li>
-                <li>追加のサポートやトレーニングが必要。</li>
+          <hr className="border-ff-silver/10" />
+          <div className="flex gap-4 items-start">
+            <span className="font-bold text-black bg-ff-gold px-3 py-1 shrink-0 h-fit uppercase rounded-sm text-xs">1_要改善</span>
+            <div className="text-ff-silver/90">
+              <ul className="list-disc list-inside space-y-2 text-sm">
+                <li>基準を下回る。不安定なデータストリーム。</li>
+                <li>システムの再調整（指導）が必要な状態。</li>
               </ul>
             </div>
           </div>
-          <hr className="border-gray-100" />
-          <div className="flex gap-3 items-start">
-            <span className="font-bold text-white bg-red-500 px-2 py-1 rounded shrink-0 h-fit">0 不可</span>
-            <div className="text-gray-700">
-              <ul className="list-disc list-inside space-y-1">
-                <li>期待される成果を達成していない。明確な努力が見られない。</li>
-                <li>継続的なパフォーマンスの低下が見られる。</li>
+          <hr className="border-ff-silver/10" />
+          <div className="flex gap-4 items-start">
+            <span className="font-bold text-white bg-ff-red px-3 py-1 shrink-0 h-fit uppercase rounded-sm text-xs">0_重大な課題</span>
+            <div className="text-ff-silver/90">
+              <ul className="list-disc list-inside space-y-2 text-sm">
+                <li>最低限の基準に達しない。努力が認められない。</li>
+                <li>継続的な能力の低下が見られる。</li>
               </ul>
             </div>
           </div>

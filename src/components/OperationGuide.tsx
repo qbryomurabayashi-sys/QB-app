@@ -9,48 +9,48 @@ interface GuideSection {
 
 const SECTIONS: GuideSection[] = [
   {
-    title: '基本操作',
-    icon: <BookOpen className="text-blue-600" size={24} />,
+    title: 'CORE_OPERATIONS',
+    icon: <BookOpen className="text-terminal-orange" size={24} />,
     content: [
-      'TOP画面の「新規評価を作成」から新しいスタッフの評価を開始できます。',
-      '既存のスタッフを選択すると、前回の続きから入力するか、新しく評価を作成するか選べます。',
-      '各カテゴリ（関係性、接客など）のタブを切り替えて評価を入力してください。'
+      'INITIALIZE_NEW_EVALUATION_VIA_TOP_PAGE_COMMAND.',
+      'SELECT_EXISTING_SUBJECT_TO_RESUME_OR_OVERWRITE_LOGS.',
+      'SWITCH_BETWEEN_CATEGORIES (REL, CS, TECH, ETC.)_VIA_TAB_INTERFACE.'
     ]
   },
   {
-    title: '保存と復元',
-    icon: <Save className="text-green-600" size={24} />,
+    title: 'DATA_SYNC_&_RECOVERY',
+    icon: <Save className="text-terminal-green" size={24} />,
     content: [
-      '入力内容は自動的に保存されますが、手動で「保存」ボタンを押すことも可能です。',
-      '「バックアップ保存」を行うと、すべてのデータをJSONファイルとしてPCに保存できます。',
-      '「復元」機能を使うと、保存したJSONファイルからデータを元に戻せます。'
+      'AUTO_SYNC_IS_ACTIVE. MANUAL_SAVE_PROTOCOL_AVAILABLE.',
+      'USE_BACKUP_PROTOCOL_TO_EXPORT_ALL_DATA_AS_JSON_FILE.',
+      'RESTORE_PROTOCOL_ALLOWS_DATA_RECOVERY_FROM_EXTERNAL_JSON.'
     ]
   },
   {
-    title: '店長評価のロック (AM専用)',
-    icon: <Lock className="text-red-600" size={24} />,
+    title: 'COMMANDER_DATA_LOCK (AM_ONLY)',
+    icon: <Lock className="text-terminal-red" size={24} />,
     content: [
-      '「店長」カテゴリの評価はパスワードで保護されています。',
-      'AM以外のスタッフが誤って入力・閲覧することを防ぐための機能です。',
-      'AMがパスワードを入力してロックを解除することで、店長スキルの評価が可能になります。'
+      'COMMANDER_CATEGORY_IS_ENCRYPTED_VIA_ACCESS_KEY.',
+      'PREVENTS_UNAUTHORIZED_ACCESS_OR_DATA_CORRUPTION.',
+      'AM_MUST_INPUT_ACCESS_KEY_TO_DECRYPT_COMMANDER_METRICS.'
     ]
   },
   {
-    title: '印刷と出力',
-    icon: <Printer className="text-purple-600" size={24} />,
+    title: 'OUTPUT_PROTOCOLS',
+    icon: <Printer className="text-terminal-orange" size={24} />,
     content: [
-      '「印刷」ボタンで、現在の評価内容をA4サイズのフィードバックシートとして出力できます。',
-      '「一括印刷」機能を使うと、登録されている全スタッフのシートをまとめて印刷用ダイアログに送ります。',
-      '「CSV出力」でデータをExcelなどで管理可能な形式でダウンロードできます。'
+      'GENERATE_A4_FEEDBACK_SHEET_VIA_PRINT_COMMAND.',
+      'BATCH_PRINT_PROTOCOL_SENDS_ALL_UNIT_DATA_TO_OUTPUT_BUFFER.',
+      'EXPORT_CSV_FOR_EXTERNAL_DATA_ANALYSIS_&_ARCHIVING.'
     ]
   },
   {
-    title: 'アクションプラン',
-    icon: <Zap className="text-yellow-600" size={24} />,
+    title: 'ACTION_PLAN_MODULE',
+    icon: <Zap className="text-terminal-orange" size={24} />,
     content: [
-      '店長向けの「アクションプラン作成ツール」が統合されています。',
-      '期初に目標を立て、四半期ごとに進捗を管理するためのツールです。',
-      '作成したプランはテキストとしてコピーし、報告書などに貼り付けて利用できます。'
+      'INTEGRATED_STRATEGIC_PLANNING_TOOL_FOR_COMMANDERS.',
+      'ESTABLISH_GOALS_AT_CYCLE_START_&_TRACK_QUARTERLY.',
+      'COPY_FINAL_REPORT_TO_CLIPBOARD_FOR_HQ_TRANSMISSION.'
     ]
   }
 ];
@@ -61,39 +61,41 @@ interface OperationGuideProps {
 
 export const OperationGuide: React.FC<OperationGuideProps> = ({ onBack }) => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-[#00205b] text-white p-4 shadow-md sticky top-0 z-40">
+    <div className="min-h-screen bg-black flex flex-col font-mono relative overflow-hidden">
+      <div className="grain pointer-events-none"></div>
+      
+      <header className="bg-terminal-rust text-terminal-orange p-4 sticky top-0 z-40 border-b-2 border-terminal-orange/30">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={onBack} className="p-2 hover:bg-terminal-orange hover:text-black transition-colors">
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-bold">総合操作説明</h1>
+          <h1 className="text-xl font-bold uppercase tracking-widest">OPERATION_MANUAL_V2.300</h1>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto p-4 sm:p-6 flex-grow w-full">
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 flex items-start gap-3">
-          <HelpCircle className="text-blue-600 shrink-0 mt-1" size={20} />
+        <div className="bg-terminal-panel/10 border border-terminal-rust/30 p-4 mb-8 flex items-start gap-3">
+          <HelpCircle className="text-terminal-orange shrink-0 mt-1" size={20} />
           <div>
-            <h2 className="font-bold text-blue-900 mb-1">お困りですか？</h2>
-            <p className="text-sm text-blue-800 leading-relaxed">
-              このツールは、QB Houseのスタッフ評価と店長の行動目標管理を一元化するためのものです。
-              各機能の使い方は以下のセクションをご確認ください。
+            <h2 className="font-bold text-terminal-orange mb-1 uppercase tracking-widest text-sm">SYSTEM_SUPPORT</h2>
+            <p className="text-[10px] text-terminal-green/80 leading-relaxed uppercase">
+              THIS_OS_INTEGRATES_STAFF_EVALUATION_&_COMMANDER_STRATEGY_PROTOCOLS.
+              PLEASE_REVIEW_THE_FOLLOWING_MODULES_FOR_OPTIMAL_SYNC.
             </p>
           </div>
         </div>
 
         <div className="space-y-8">
           {SECTIONS.map((section, idx) => (
-            <section key={idx} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center gap-3 mb-4">
+            <section key={idx} className="terminal-window p-6">
+              <div className="flex items-center gap-3 mb-4 border-b border-terminal-rust/30 pb-2">
                 {section.icon}
-                <h3 className="text-lg font-bold text-gray-900">{section.title}</h3>
+                <h3 className="text-sm font-bold text-terminal-orange uppercase tracking-widest">{section.title}</h3>
               </div>
               <ul className="space-y-3">
                 {section.content.map((text, tIdx) => (
-                  <li key={tIdx} className="flex items-start gap-3 text-sm text-gray-600 leading-relaxed">
-                    <span className="w-5 h-5 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                  <li key={tIdx} className="flex items-start gap-3 text-[10px] text-terminal-green/80 leading-relaxed uppercase">
+                    <span className="w-5 h-5 bg-terminal-panel/20 text-terminal-rust border border-terminal-rust/30 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
                       {tIdx + 1}
                     </span>
                     {text}
@@ -104,12 +106,12 @@ export const OperationGuide: React.FC<OperationGuideProps> = ({ onBack }) => {
           ))}
         </div>
 
-        <div className="mt-12 p-6 bg-gray-800 rounded-xl text-white text-center">
-          <h3 className="font-bold mb-2">データの取り扱いについて</h3>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            本アプリのデータはブラウザのローカルストレージに保存されます。<br />
-            ブラウザのキャッシュを削除するとデータが消える可能性があるため、<br />
-            定期的な「バックアップ保存」を強く推奨します。
+        <div className="mt-12 p-6 bg-terminal-panel/10 border border-terminal-rust/30 text-terminal-rust text-center">
+          <h3 className="font-bold mb-2 uppercase tracking-widest text-xs">DATA_INTEGRITY_WARNING</h3>
+          <p className="text-[10px] text-terminal-rust/70 leading-relaxed uppercase">
+            DATA_IS_STORED_IN_LOCAL_STORAGE_BUFFER.<br />
+            CLEARING_BROWSER_CACHE_WILL_PURGE_ALL_LOGS.<br />
+            REGULAR_BACKUP_PROTOCOLS_ARE_MANDATORY.
           </p>
         </div>
       </main>

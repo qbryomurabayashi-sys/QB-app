@@ -17,18 +17,18 @@ export const ScheduleAlert: React.FC<ScheduleAlertProps> = ({ date }) => {
 
   if (!alert) return null;
 
-  const bgClass = alert.type === 'warn' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800';
-  const iconClass = alert.type === 'warn' ? 'text-amber-600' : 'text-indigo-600';
+  const bgClass = alert.type === 'warn' ? 'bg-terminal-red/10 border-terminal-red text-terminal-red' : 'bg-terminal-orange/10 border-terminal-orange text-terminal-orange';
+  const iconClass = alert.type === 'warn' ? 'text-terminal-red' : 'text-terminal-orange';
 
   return (
-    <div className={`mx-3 sm:mx-5 mt-4 p-3 rounded-lg border flex items-start gap-3 shadow-sm ${bgClass} print:hidden`}>
-      <Bell className={`shrink-0 mt-0.5 ${iconClass}`} size={20} />
+    <div className={`mx-3 sm:mx-5 mt-4 p-3 border flex items-start gap-3 shadow-[0_0_10px_rgba(242,125,38,0.2)] ${bgClass} print:hidden font-mono`}>
+      <Bell className={`shrink-0 mt-0.5 ${iconClass} animate-pulse`} size={20} />
       <div>
-        <div className="font-bold flex items-center gap-2">
-          <span>{month}月: {alert.title}</span>
+        <div className="font-bold flex items-center gap-2 uppercase tracking-widest text-xs">
+          <span>CYCLE_{month}: {alert.title}</span>
         </div>
-        <div className="text-sm font-bold mt-1">
-          {alert.text} <span className="font-normal">の時期です。面談を実施してください。</span>
+        <div className="text-[10px] font-bold mt-1 uppercase">
+          {alert.text} <span className="font-normal opacity-70">_REQUIRED. INITIALIZE_INTERVIEW_PROTOCOL.</span>
         </div>
       </div>
     </div>

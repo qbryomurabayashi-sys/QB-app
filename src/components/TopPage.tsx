@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Store, User, Plus, Trash2, History, ChevronRight, Upload, Download, Layers, BookOpen, Menu, X, HelpCircle, Info, ArrowLeft } from 'lucide-react';
 import { StaffSummary } from '../types';
 
@@ -33,130 +34,198 @@ export const TopPage: React.FC<TopPageProps> = ({
   }, [staffList]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header with Hamburger */}
-      <header className="bg-[#00205b] text-white p-4 shadow-md sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <button onClick={onBackToDashboard} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-              <ArrowLeft size={24} />
+    <div className="min-h-screen bg-black flex flex-col font-serif relative overflow-hidden">
+      {/* Mist Background */}
+      <div className="mist-container">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="mist-particle" style={{ width: '400px', height: '400px', left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${i * 3}s` }} />
+        ))}
+      </div>
+
+      {/* Header */}
+      <header className="sticky top-0 z-50 p-4">
+        <div className="ff-window max-w-5xl mx-auto flex justify-between items-center !py-3">
+          <div className="flex items-center gap-4 group">
+            <button onClick={onBackToDashboard} className="relative p-2 text-ff-silver hover:text-white transition-colors">
+              <span className="ff-cursor"></span>
+              <ArrowLeft size={28} />
             </button>
-            <Store className="text-blue-400" size={28} />
-            <h1 className="text-xl font-bold">QB総合ツール</h1>
+            <Store className="text-ff-gold" size={32} />
+            <h1 className="text-2xl font-display font-bold tracking-[0.2em] text-ff-gold uppercase">ワールドマップ</h1>
           </div>
           <button 
             onClick={() => setIsMenuOpen(true)}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="relative p-2 text-ff-silver hover:text-white transition-colors group"
           >
-            <Menu size={28} />
+            <span className="ff-cursor"></span>
+            <Menu size={32} />
           </button>
         </div>
       </header>
 
       {/* Side Menu Overlay */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 z-[100] flex">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setIsMenuOpen(false)}></div>
-          <div className="relative w-72 bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="p-4 bg-[#00205b] text-white flex justify-between items-center">
-              <h2 className="font-bold">メニュー</h2>
-              <button onClick={() => setIsMenuOpen(false)} className="p-1 hover:bg-white/10 rounded">
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="flex-grow overflow-y-auto p-2 space-y-1">
-              <div className="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">ツール</div>
-              <button onClick={() => { onActionPlan(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                <BookOpen size={18} className="text-indigo-600" /> アクションプラン作成
-              </button>
-              <button onClick={() => { onBatchPrint(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                <Layers size={18} className="text-blue-600" /> 全員分を一括印刷
-              </button>
+      <AnimatePresence>
+        {isMenuOpen && (
+          <div className="fixed inset-0 z-[100] flex">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+              onClick={() => setIsMenuOpen(false)}
+            />
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="relative w-96 ff-window !border-r-0 !border-y-0 h-full flex flex-col ml-auto p-6"
+            >
+              <div className="p-4 border-b border-ff-silver/20 flex justify-between items-center mb-6">
+                <h2 className="text-ff-gold font-display font-bold uppercase tracking-widest text-xl">コマンドメニュー</h2>
+                <button onClick={() => setIsMenuOpen(false)} className="text-ff-silver hover:text-white group relative">
+                  <span className="ff-cursor"></span>
+                  <X size={32} />
+                </button>
+              </div>
+              
+              <div className="flex-grow overflow-y-auto space-y-6">
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-ff-silver/50 uppercase tracking-widest px-2">戦略ツール</p>
+                  <button onClick={() => { onActionPlan(); setIsMenuOpen(false); }} className="w-full flex items-center gap-4 px-4 py-4 text-ff-silver hover:text-white transition-all group relative text-lg">
+                    <span className="ff-cursor"></span>
+                    <BookOpen size={24} className="text-ff-gold" /> 
+                    <span className="font-display tracking-wider">アクションプラン</span>
+                  </button>
+                  <button onClick={() => { onBatchPrint(); setIsMenuOpen(false); }} className="w-full flex items-center gap-4 px-4 py-4 text-ff-silver hover:text-white transition-all group relative text-lg">
+                    <span className="ff-cursor"></span>
+                    <Layers size={24} className="text-ff-gold" /> 
+                    <span className="font-display tracking-wider">一括印刷</span>
+                  </button>
+                </div>
 
-              <div className="px-3 py-2 mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">データ管理</div>
-              <button onClick={() => { onBackup(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                <Download size={18} className="text-green-600" /> バックアップ保存
-              </button>
-              <label className="w-full flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
-                <Upload size={18} className="text-orange-600" /> 復元 (JSON)
-                <input type="file" accept=".json" className="hidden" onChange={(e) => { onRestore(e); setIsMenuOpen(false); }} />
-              </label>
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-ff-silver/50 uppercase tracking-widest px-2">ギルドアーカイブ</p>
+                  <button onClick={() => { onBackup(); setIsMenuOpen(false); }} className="w-full flex items-center gap-4 px-4 py-4 text-ff-silver hover:text-white transition-all group relative text-lg">
+                    <span className="ff-cursor"></span>
+                    <Download size={24} className="text-ff-gold" /> 
+                    <span className="font-display tracking-wider">クリスタルへ保存</span>
+                  </button>
+                  <label className="w-full flex items-center gap-4 px-4 py-4 text-ff-silver hover:text-white transition-all group relative cursor-pointer text-lg">
+                    <span className="ff-cursor"></span>
+                    <Upload size={24} className="text-ff-gold" /> 
+                    <span className="font-display tracking-wider">クリスタルから読込</span>
+                    <input type="file" accept=".json" className="hidden" onChange={(e) => { onRestore(e); setIsMenuOpen(false); }} />
+                  </label>
+                </div>
 
-              <div className="px-3 py-2 mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">情報</div>
-              <button onClick={() => { onOperationGuide(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                <HelpCircle size={18} className="text-blue-500" /> 総合操作説明
-              </button>
-              <button onClick={() => { onVersionInfo(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                <Info size={18} className="text-gray-500" /> バージョン情報
-              </button>
-            </div>
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-ff-silver/50 uppercase tracking-widest px-2">知識の書</p>
+                  <button onClick={() => { onOperationGuide(); setIsMenuOpen(false); }} className="w-full flex items-center gap-4 px-4 py-4 text-ff-silver hover:text-white transition-all group relative text-lg">
+                    <span className="ff-cursor"></span>
+                    <HelpCircle size={24} className="text-ff-gold" /> 
+                    <span className="font-display tracking-wider">操作ガイド</span>
+                  </button>
+                  <button onClick={() => { onVersionInfo(); setIsMenuOpen(false); }} className="w-full flex items-center gap-4 px-4 py-4 text-ff-silver hover:text-white transition-all group relative text-lg">
+                    <span className="ff-cursor"></span>
+                    <Info size={24} className="text-ff-gold" /> 
+                    <span className="font-display tracking-wider">バージョン情報</span>
+                  </button>
+                </div>
+              </div>
 
-            <div className="p-4 border-t text-center text-[10px] text-gray-400">
-              QB総合ツール v2.1.0
-            </div>
+              <div className="p-6 border-t border-ff-silver/20 text-center text-xs text-ff-silver/40 font-display tracking-widest">
+                FINAL_EVALUATION_IX v9.0.0
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
-      <main className="p-4 sm:p-8 max-w-5xl mx-auto w-full flex-grow">
-        <div className="flex flex-col sm:flex-row justify-between items-start mb-8 gap-4">
+      <main className="p-4 sm:p-8 max-w-5xl mx-auto w-full flex-grow z-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start mb-12 gap-6 border-b-4 border-ff-gold/30 pb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">スタッフ評価一覧</h2>
-            <p className="text-gray-500 mt-1">評価を入力するスタッフを選択、または新規作成してください。</p>
+            <h2 className="text-4xl sm:text-5xl font-display font-bold text-ff-gold tracking-[0.1em] uppercase">英雄の名簿</h2>
+            <p className="text-ff-silver/60 text-lg mt-3 italic">仲間を選択してその軌跡を確認するか、新たな英雄を召喚してください。</p>
           </div>
           <button
             onClick={onCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95 w-full sm:w-auto justify-center"
+            className="ff-button !py-5 !px-10 flex items-center gap-4 group"
           >
-            <Plus size={24} /> 新規評価を作成
+            <span className="ff-cursor"></span>
+            <Plus size={32} className="text-ff-gold" /> 
+            <span className="text-xl">新たな英雄を召喚</span>
           </button>
         </div>
 
         {uniqueStaffList.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-100">
-            <div className="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User size={40} className="text-blue-400" />
+          <div className="ff-window p-20 text-center">
+            <div className="w-32 h-32 rounded-full border-4 border-ff-gold flex items-center justify-center mx-auto mb-8 bg-gradient-to-br from-ff-gold/20 to-transparent">
+              <User size={64} className="text-ff-gold/50" />
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">評価データがありません</h3>
-            <p className="text-gray-500 mb-6">「新規評価を作成」ボタンから新しいスタッフの評価を開始してください。</p>
+            <h3 className="text-3xl font-display font-bold text-ff-gold mb-6 uppercase tracking-[0.2em]">名簿は空です</h3>
+            <p className="text-ff-silver/60 text-xl italic">「クリスタルは、未来を切り拓く者たちの名を待っています。」</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
             {uniqueStaffList.map((staff) => (
-              <div
+              <motion.div
                 key={staff.id}
                 onClick={() => onSelect(staff.id)}
-                className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all group relative overflow-hidden"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="ff-window group cursor-pointer transition-all !p-0 overflow-hidden"
               >
-                <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
-
-                <div className="flex justify-between items-start mb-3">
-                  <div className="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
-                    <Store size={12} /> {staff.store || '店舗未入力'}
+                <div className="p-5 bg-gradient-to-r from-ff-blue-top to-transparent flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <div className="ff-avatar-frame !p-1">
+                      <div className="w-12 h-12 rounded-full bg-blue-900 flex items-center justify-center text-ff-gold font-display font-bold text-xl">
+                        {staff.name?.charAt(0) || '?'}
+                      </div>
+                    </div>
+                    <div className="text-ff-gold text-xs font-display font-bold tracking-widest uppercase">
+                      LV. 99 {staff.store || '放浪者'}
+                    </div>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDelete(staff.id); }}
-                    className="text-gray-300 hover:text-red-500 p-1 rounded-full hover:bg-red-50 transition-colors"
-                    title="削除"
+                    className="text-ff-silver/40 hover:text-ff-gold p-2 transition-colors relative group/btn"
+                    title="解放"
                   >
-                    <Trash2 size={16} />
+                    <span className="ff-cursor !-left-8"></span>
+                    <Trash2 size={24} />
                   </button>
                 </div>
 
-                <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">
-                  {staff.name || '名称未設定'}
-                </h3>
+                <div className="p-6">
+                  <h3 className="text-2xl font-display font-bold text-white mb-6 truncate uppercase tracking-widest flex items-center gap-4">
+                    <span className="ff-cursor !static !opacity-100 !translate-y-0 group-hover:animate-pulse"></span>
+                    {staff.name || '名もなき英雄'}
+                  </h3>
 
-                <div className="flex items-center gap-2 text-xs text-gray-400 border-t border-gray-50 pt-3 mt-2">
-                  <History size={12} />
-                  <span>最終更新: {new Date(staff.updatedAt).toLocaleString('ja-JP')}</span>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-xs font-display text-ff-silver/60 uppercase">
+                      <span>HP</span>
+                      <span className="text-ff-silver">9999 / 9999</span>
+                    </div>
+                    <div className="ff-gauge-bg h-4">
+                      <div className="ff-gauge-fill w-full" />
+                    </div>
+                    <div className="flex justify-between text-xs font-display text-ff-silver/60 uppercase">
+                      <span>MP</span>
+                      <span className="text-ff-sky">999 / 999</span>
+                    </div>
+                    <div className="ff-gauge-bg h-4">
+                      <div className="ff-gauge-fill w-full !bg-ff-sky" />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-blue-600">
-                  <ChevronRight size={20} />
+                <div className="p-4 bg-black/40 border-t border-ff-silver/10 flex items-center gap-3 text-xs font-display text-ff-silver/40 uppercase tracking-tighter">
+                  <History size={16} />
+                  <span>最終記録: {new Date(staff.updatedAt).toLocaleString('ja-JP')}</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}

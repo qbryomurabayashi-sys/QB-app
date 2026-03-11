@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { MinusCircle, PlusCircle, ChevronUp, ChevronDown, MessageSquare, X, PlusCircle as PlusIcon } from 'lucide-react';
 import { EvaluationItem, Incident } from '../types';
 import { CLAIM_DEDUCTIONS, IMPROVEMENT_OPTS } from '../constants';
@@ -87,142 +88,178 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
   }, [newIncidentDeduction, claimDeductionOpts]);
 
   return (
-    <div className={`mb-6 p-4 bg-white border rounded-xl shadow-sm print-break-inside-avoid ${item.score === null && !isClaimOrAccident ? 'border-l-4 border-l-red-500 border-gray-200' : 'border-gray-200'}`}>
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-2">
-          <span className="bg-blue-100 text-blue-900 text-xs font-bold px-2 py-1 rounded-full">
-            No.{item.no}
+    <motion.div 
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className={`ff-window mb-8 print-break-inside-avoid relative overflow-hidden ${item.score === null && !isClaimOrAccident ? 'ring-2 ring-ff-gold/50' : ''}`}
+    >
+      {/* Decorative Corner Accents */}
+      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-ff-gold/30 rounded-tl-sm pointer-events-none" />
+      <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-ff-gold/30 rounded-tr-sm pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-ff-gold/30 rounded-bl-sm pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-ff-gold/30 rounded-br-sm pointer-events-none" />
+
+      <div className="flex justify-between items-center mb-4 border-b border-ff-silver/20 pb-2">
+        <div className="flex items-center gap-3">
+          <span className="text-ff-gold font-display font-bold tracking-widest text-xs">
+            NO.{item.no}
           </span>
-          <span className="text-xs font-medium text-gray-500 truncate">{item.subCategory}</span>
+          <span className="text-[10px] text-ff-silver/60 uppercase tracking-tighter italic">[{item.subCategory}]</span>
         </div>
         <button
           type="button"
           onClick={() => setIsMemoOpen(!isMemoOpen)}
-          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border transition-all shadow-sm ${isMemoOpen ? 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-400'}`}
+          className="text-xs text-ff-silver hover:text-ff-gold transition-colors flex items-center gap-2 group relative"
         >
-          <MessageSquare size={14} /> {isMemoOpen ? 'メモを隠す' : '一言メモ'}
+          <span className="ff-cursor !-left-8"></span>
+          <MessageSquare size={18} className="text-ff-gold" /> 
+          <span className="font-display tracking-widest">{isMemoOpen ? '巻物を閉じる' : '巻物を開く'}</span>
         </button>
       </div>
 
-      <h3 className="font-bold text-gray-900 text-lg mb-2 leading-tight">{item.item}</h3>
+      <h3 className="font-display font-bold text-white text-2xl mb-6 leading-tight uppercase tracking-[0.1em]">{item.item}</h3>
 
-      <div className="text-sm text-gray-800 font-medium mb-3 bg-blue-50 p-2.5 rounded border border-blue-100 leading-relaxed">
+      <div className="ff-parchment text-lg text-stone-800 mb-8 p-6 leading-relaxed italic shadow-inner">
         {item.desc}
       </div>
 
       {isMemoOpen && (
-        <div className="mb-4">
-          <textarea
-            value={item.memo || ''}
-            onChange={(e) => onUpdateMemo(item.no, e.target.value)}
-            placeholder={readOnly ? "メモなし" : "メモを入力..."}
-            className="w-full p-2 text-sm border border-indigo-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all bg-indigo-50/30 disabled:bg-gray-100 disabled:text-gray-500"
-            rows={2}
-            disabled={readOnly}
-          />
+        <div className="mb-8 animate-in slide-in-from-top duration-300">
+          <div className="relative">
+            <textarea
+              value={item.memo || ''}
+              onChange={(e) => onUpdateMemo(item.no, e.target.value)}
+              placeholder={readOnly ? "巻物は白紙です..." : "ここに記録を記してください..."}
+              className="w-full p-6 text-lg bg-ff-parchment border-2 border-ff-gold/30 text-stone-900 focus:border-ff-gold outline-none transition-all font-serif italic shadow-md rounded-sm"
+              rows={4}
+              disabled={readOnly}
+            />
+            <div className="absolute top-3 right-3 opacity-20 text-2xl">📜</div>
+          </div>
         </div>
       )}
 
       {item.pointDesc && (
-        <div className="mb-4">
+        <div className="mb-8">
           <button
             type="button"
             onClick={() => setIsDetailOpen(!isDetailOpen)}
-            className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm font-bold transition-all duration-200 ${isDetailOpen
-              ? 'bg-blue-50 text-blue-900 border border-blue-200'
-              : 'bg-white text-gray-500 border-2 border-dashed border-gray-300 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
+            className={`w-full flex items-center justify-between px-6 py-4 text-lg font-display font-bold transition-all group relative ${isDetailOpen
+              ? 'bg-ff-gold/20 text-ff-gold border border-ff-gold'
+              : 'bg-black/20 text-ff-silver border border-ff-silver/30 hover:border-ff-gold hover:text-ff-gold'
               }`}
           >
-            <div className="flex items-center gap-2">
-              {isDetailOpen ? <MinusCircle size={18} className="text-blue-500" /> : <PlusCircle size={18} />}
-              <span>評価ポイントを{isDetailOpen ? '隠す' : '見る'}</span>
+            <span className="ff-cursor"></span>
+            <div className="flex items-center gap-4">
+              {isDetailOpen ? <MinusCircle size={24} /> : <PlusCircle size={24} />}
+              <span className="tracking-widest">{isDetailOpen ? '知恵を隠す' : '知恵を授かる'}</span>
             </div>
-            {isDetailOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            {isDetailOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
           </button>
 
-          {isDetailOpen && (
-            <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 leading-relaxed animate-in fade-in slide-in-from-top-1 shadow-inner">
-              <div className="flex gap-2">
-                <div className="shrink-0 w-1 bg-blue-400 rounded-full my-1"></div>
-                <div>{item.pointDesc}</div>
-              </div>
-            </div>
-          )}
+          <AnimatePresence>
+            {isDetailOpen && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-3 p-6 bg-gradient-to-br from-ff-blue-top/40 to-black/40 border border-ff-gold/20 text-lg text-ff-silver leading-relaxed font-serif italic">
+                  <div className="flex gap-4">
+                    <div className="shrink-0 w-1.5 bg-ff-gold/50 rounded-full"></div>
+                    <div>{item.pointDesc}</div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-6">
         {isClaimOrAccident ? (
           <div className="w-full">
-            <div className="flex justify-between items-end mb-2">
-              <p className="text-xs text-red-600 font-bold">
-                {item.item}の案件記録 (減点 + 改善点)
+            <div className="flex justify-between items-end mb-6">
+              <p className="text-lg text-ff-red font-display font-bold uppercase tracking-widest">
+                重大インシデント記録
               </p>
-              <p className="text-xl font-bold font-mono">
-                合計: <span className={(item.score || 0) < 0 ? "text-red-600" : "text-gray-400"}>{item.score ?? 0}</span>
-                <span className="text-xs text-gray-400 font-normal ml-1">点</span>
-              </p>
+              <div className="text-right">
+                <span className="text-xs text-ff-silver/60 uppercase block">合計影響度</span>
+                <span className={`text-4xl font-display font-bold ${(item.score || 0) < 0 ? "text-ff-red" : "text-ff-silver"}`}>
+                  {item.score ?? 0}
+                  <span className="text-lg ml-2">PTS</span>
+                </span>
+              </div>
             </div>
 
             {item.incidents && item.incidents.length > 0 ? (
-              <div className="space-y-2 mb-3">
+              <div className="space-y-4 mb-6">
                 {item.incidents.map((inc) => (
-                  <div key={inc.id} className="p-3 bg-gray-50 border border-gray-200 rounded-lg relative group">
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="text-sm font-bold text-gray-800 pr-6">
-                        <span className="text-xs text-gray-500 font-normal mr-2 block sm:inline">{inc.date}</span>
+                  <div key={inc.id} className="p-6 bg-black/40 border border-ff-silver/20 relative group hover:border-ff-gold/50 transition-colors">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="text-lg text-white pr-10 font-serif italic">
+                        <span className="text-ff-gold mr-4 font-display not-italic">[{inc.date}]</span>
                         {inc.description}
                       </div>
-                      <div className="text-right shrink-0">
-                        <span className="text-red-600 font-bold mr-2">{inc.deduction}点</span>
-                        <span className="text-blue-600 font-bold">+{inc.improvement}点</span>
+                      <div className="text-right shrink-0 font-display text-sm">
+                        <div className="text-ff-red">-{Math.abs(inc.deduction)}P</div>
+                        <div className="text-ff-emerald">+{inc.improvement}P</div>
                       </div>
-                    </div>
-                    <div className="text-xs text-gray-500 text-right">
-                      計: {Math.min(0, (inc.deduction || 0) + (inc.improvement || 0))}点
                     </div>
                     {!readOnly && (
                       <button
                         onClick={() => handleDeleteIncident(inc.id)}
-                        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-3 right-3 p-2 text-ff-silver/40 hover:text-ff-red opacity-0 group-hover:opacity-100 transition-opacity group/del"
                       >
-                        <X size={14} />
+                        <span className="ff-cursor !-left-8"></span>
+                        <X size={20} />
                       </button>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-4 bg-gray-50 border border-dashed border-gray-300 rounded text-gray-400 text-xs mb-3">
-                案件なし (0点)
+              <div className="text-center py-12 bg-black/20 border-2 border-dashed border-ff-silver/10 text-ff-silver/40 text-lg italic mb-6 rounded-lg">
+                記録されているインシデントはありません。
               </div>
             )}
 
             {isAddingIncident ? (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg animate-in fade-in zoom-in-95">
-                <h4 className="text-xs font-bold text-blue-800 mb-2">新規案件の追加</h4>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">発生日</label>
-                    <input
-                      type="date"
-                      value={newIncidentDate}
-                      onChange={(e) => setNewIncidentDate(e.target.value)}
-                      className="w-full text-sm p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none mb-3"
-                    />
-                    <label className="block text-xs font-bold text-gray-600 mb-1">内容メモ</label>
-                    <input
-                      type="text"
-                      value={newIncidentDesc}
-                      onChange={(e) => setNewIncidentDesc(e.target.value)}
-                      className="w-full text-sm p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                      placeholder="例: カット手順の誤り、接客時の言葉遣いなど"
-                    />
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="p-8 bg-gradient-to-b from-ff-blue-top to-black border-2 border-ff-gold/50 shadow-2xl rounded-sm"
+              >
+                <h4 className="text-xl font-display font-bold text-ff-gold mb-8 uppercase tracking-[0.2em] flex items-center gap-3">
+                  <span className="animate-pulse">💠</span> 新たな記録を追加
+                </h4>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-xs font-display font-bold text-ff-silver/60 mb-3 uppercase tracking-widest">発生日</label>
+                      <input
+                        type="date"
+                        value={newIncidentDate}
+                        onChange={(e) => setNewIncidentDate(e.target.value)}
+                        className="w-full bg-black/40 border border-ff-silver/30 text-ff-silver p-3 text-lg focus:border-ff-gold outline-none rounded-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-display font-bold text-ff-silver/60 mb-3 uppercase tracking-widest">内容</label>
+                      <input
+                        type="text"
+                        value={newIncidentDesc}
+                        onChange={(e) => setNewIncidentDesc(e.target.value)}
+                        className="w-full bg-black/40 border border-ff-silver/30 text-ff-silver p-3 text-lg focus:border-ff-gold outline-none rounded-sm"
+                        placeholder="出来事を記述してください..."
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">減点対象 (スライダー調整)</label>
-                    <div className="flex items-center gap-3">
+                    <label className="block text-xs font-display font-bold text-ff-silver/60 mb-3 uppercase tracking-widest">減点規模</label>
+                    <div className="flex items-center gap-6 bg-black/20 p-6 rounded-sm border border-ff-silver/10">
                       <input
                         type="range"
                         min={item.category === '技術' ? -10 : -15}
@@ -230,61 +267,57 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
                         step={1}
                         value={newIncidentDeduction}
                         onChange={(e) => setNewIncidentDeduction(parseInt(e.target.value, 10))}
-                        className="w-full h-10 cursor-pointer accent-red-600 touch-pan-x"
+                        className="w-full h-3 cursor-pointer accent-ff-red bg-ff-silver/20 rounded-lg appearance-none"
                       />
-                      <div className="text-right font-bold text-red-600 text-xl w-12 shrink-0 tabular-nums">
+                      <div className="text-right font-display font-bold text-ff-red text-4xl w-16 shrink-0 tabular-nums">
                         {newIncidentDeduction}
                       </div>
-                    </div>
-                    <div className="p-2 bg-red-50 border border-red-100 rounded text-gray-700 text-xs mt-1">
-                      {currentDeductionOpt ? (
-                        <div>
-                          <span className="font-bold block mb-0.5">{currentDeductionOpt.label}</span>
-                          <span className="text-gray-500">{currentDeductionOpt.desc}</span>
-                        </div>
-                      ) : "該当なし"}
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">改善点 (最大+5点)</label>
-                    <div className="grid grid-cols-1 gap-1">
+                    <label className="block text-xs font-display font-bold text-ff-silver/60 mb-4 uppercase tracking-widest">改善要素</label>
+                    <div className="grid grid-cols-1 gap-3">
                       {IMPROVEMENT_OPTS.map(opt => (
                         <button
                           key={opt.score}
                           type="button"
                           onClick={() => setNewIncidentImprovement(opt.score)}
-                          className={`text-left text-xs p-2 rounded border flex justify-between items-center transition-colors ${newIncidentImprovement === opt.score ? 'bg-blue-100 border-blue-400 text-blue-900 font-bold' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                          className={`text-left text-sm p-4 border-2 flex justify-between items-center transition-all group relative ${newIncidentImprovement === opt.score 
+                            ? 'bg-ff-emerald/20 border-ff-emerald text-white font-bold' 
+                            : 'bg-black/40 border-ff-silver/10 text-ff-silver/60 hover:border-ff-emerald/50 hover:text-ff-emerald'}`}
                         >
-                          <span>{opt.label}</span>
-                          <span className="text-[10px] text-gray-500 truncate ml-2">{opt.desc}</span>
+                          <span className="ff-cursor"></span>
+                          <span className="font-display tracking-widest text-lg">{opt.label}</span>
+                          <span className="text-xs opacity-50 italic ml-6 uppercase">{opt.desc}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="flex gap-2 justify-end mt-2">
-                    <button onClick={() => setIsAddingIncident(false)} className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-200 rounded">キャンセル</button>
-                    <button onClick={handleAddIncident} className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 font-bold shadow-sm">確定</button>
+                  <div className="flex gap-6 justify-end mt-8">
+                    <button onClick={() => setIsAddingIncident(false)} className="px-6 py-3 text-lg text-ff-silver hover:text-white uppercase tracking-widest transition-colors">キャンセル</button>
+                    <button onClick={handleAddIncident} className="ff-button !py-3 !px-8 text-lg uppercase tracking-widest">記録を確定</button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ) : (
               <button
                 onClick={() => setIsAddingIncident(true)}
                 disabled={readOnly}
-                className={`w-full py-2 bg-white border border-dashed border-gray-400 text-gray-500 rounded transition-all text-xs font-bold flex items-center justify-center gap-2 ${readOnly ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50 hover:text-blue-600 hover:border-blue-400'}`}
+                className={`w-full py-6 bg-black/40 border-2 border-dashed border-ff-silver/20 text-ff-silver/60 transition-all text-lg font-display font-bold flex items-center justify-center gap-4 uppercase rounded-sm group relative ${readOnly ? 'opacity-50 cursor-not-allowed' : 'hover:border-ff-gold hover:text-ff-gold hover:bg-ff-gold/5'}`}
               >
-                <PlusIcon size={16} /> 案件を追加する
+                <span className="ff-cursor"></span>
+                <PlusIcon size={24} /> インシデント記録を開始
               </button>
             )}
           </div>
         ) : isNegative ? (
           <div className="w-full">
-            <p className="text-xs text-red-600 font-bold mb-2">
-              減点項目 ({item.max} 〜 0)
+            <p className="text-xs text-ff-red font-display font-bold mb-4 uppercase tracking-[0.2em]">
+              減点レベル ({item.max} ~ 0)
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-8 bg-black/20 p-6 rounded-sm border border-ff-silver/10">
               <input
                 type="range"
                 min={item.max}
@@ -292,58 +325,34 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
                 step={1}
                 value={item.score ?? 0}
                 onChange={(e) => onUpdate(item.no, parseInt(e.target.value, 10))}
-                className="w-full h-10 cursor-pointer accent-red-600 touch-pan-x disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-3 cursor-pointer accent-ff-red bg-ff-silver/20 rounded-lg appearance-none disabled:opacity-50"
                 disabled={readOnly}
               />
-              <div className="text-right font-bold text-red-600 text-2xl w-12 shrink-0 tabular-nums">
-                {item.score !== null ? item.score : ""}
+              <div className="text-right font-display font-bold text-ff-red text-4xl w-20 shrink-0 tabular-nums">
+                {item.score !== null ? item.score : "0"}
               </div>
-            </div>
-            <div className="mt-2 p-2 bg-red-50 border border-red-100 rounded text-gray-700 text-xs">
-              {item.criteria && item.score !== null && item.criteria[item.score]
-                ? item.criteria[item.score]
-                : item.score === 0 || item.score === null ? "減点なし" : "減点対象"}
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            <div className="flex gap-2">
+          <div className="space-y-6">
+            <p className="text-xs text-ff-gold font-display font-bold mb-2 uppercase tracking-[0.2em]">
+              コマンド選択
+            </p>
+            <div className="flex gap-3">
               {availableScores.map((score) => {
                 const isSelected = item.score === score;
                 
-                let selectedClass = 'bg-blue-50 border-blue-500 ring-1 ring-blue-500';
-                let badgeClass = 'bg-gray-100 text-gray-600';
-
+                let selectedClass = 'border-ff-silver/30 text-ff-silver/60';
                 if (isSelected) {
                   if (score > 0) {
-                    if (score >= 3) {
-                      selectedClass = 'bg-blue-50 border-blue-600 ring-2 ring-blue-600';
-                      badgeClass = 'bg-blue-600 text-white';
-                    } else if (score === 2) {
-                      selectedClass = 'bg-sky-50 border-sky-500 ring-2 ring-sky-500';
-                      badgeClass = 'bg-sky-500 text-white';
-                    } else {
-                      selectedClass = 'bg-orange-50 border-orange-500 ring-2 ring-orange-500';
-                      badgeClass = 'bg-orange-500 text-white';
-                    }
+                    selectedClass = 'bg-gradient-to-b from-ff-emerald to-emerald-900 text-white border-ff-emerald shadow-[0_0_20px_rgba(80,200,120,0.5)]';
                   } else if (score < 0 || (score === 0 && item.max > 0)) {
-                    selectedClass = 'bg-red-50 border-red-500 ring-2 ring-red-500';
-                    badgeClass = 'bg-red-500 text-white';
+                    selectedClass = 'bg-gradient-to-b from-ff-red to-red-900 text-white border-ff-red shadow-[0_0_20px_rgba(255,51,51,0.5)]';
                   } else {
-                    selectedClass = 'bg-gray-50 border-gray-500 ring-2 ring-gray-500';
-                    badgeClass = 'bg-gray-600 text-white';
+                    selectedClass = 'bg-gradient-to-b from-ff-silver to-stone-600 text-black border-ff-silver shadow-[0_0_20px_rgba(224,224,224,0.5)]';
                   }
                 } else {
-                  selectedClass = 'bg-white border-gray-200 hover:bg-gray-50';
-                  if (score > 0) {
-                    if (score >= 3) badgeClass = 'bg-blue-100 text-blue-800';
-                    else if (score === 2) badgeClass = 'bg-sky-100 text-sky-800';
-                    else badgeClass = 'bg-orange-100 text-orange-800';
-                  } else if (score < 0 || (score === 0 && item.max > 0)) {
-                    badgeClass = 'bg-red-100 text-red-800';
-                  } else {
-                    badgeClass = 'bg-gray-100 text-gray-800';
-                  }
+                  selectedClass = 'bg-black/40 border-ff-silver/20 text-ff-silver/40 hover:border-ff-gold hover:text-ff-gold hover:bg-ff-gold/5';
                 }
 
                 return (
@@ -352,24 +361,30 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
                     key={score}
                     onClick={() => !readOnly && onUpdate(item.no, score)}
                     disabled={readOnly}
-                    className={`flex-1 py-3 rounded-lg border-2 transition-all duration-100 flex items-center justify-center ${!readOnly && 'active:scale-[0.98]'} ${selectedClass} ${readOnly ? 'opacity-80 cursor-default' : ''}`}
+                    className={`flex-1 py-4 border-2 transition-all duration-150 flex items-center justify-center font-display font-bold text-2xl group relative ${isSelected ? 'scale-110 z-10' : ''} ${selectedClass} ${readOnly ? 'opacity-80 cursor-default' : ''}`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg ${badgeClass}`}>
-                      {score}
-                    </div>
+                    <span className="ff-cursor !-top-8 !left-1/2 !-translate-x-1/2 !rotate-90"></span>
+                    {score}
                   </button>
                 );
               })}
             </div>
             
-            {item.score !== null && (
-              <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {item.criteria?.[item.score] || (item.score === 0 ? "不十分 / なし" : "評価基準なし")}
-              </div>
-            )}
+            <AnimatePresence>
+              {item.score !== null && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-6 bg-gradient-to-r from-ff-blue-top/30 to-transparent border-l-4 border-ff-gold text-lg text-white leading-relaxed font-serif italic shadow-lg"
+                >
+                  <span className="text-ff-gold font-display not-italic mr-4">結果:</span>
+                  {item.criteria?.[item.score] || (item.score === 0 ? "クリスタルは特に影響を示していません。" : "その結末はまだ謎に包まれています。")}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
