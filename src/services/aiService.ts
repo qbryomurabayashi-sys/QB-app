@@ -138,16 +138,21 @@ ${criteria ? `【スコアの判定コメント】: ${criteria}` : ""}
       }
     }
 
-    // 2. クラウド提供のGemini APIを利用する場合
-    const apiKey = process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
-    if (apiKey) {
-      if (!ai) ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview", 
-        contents: prompt,
-        config: { systemInstruction: "あなたは優秀な評価者です。" }
+    // 2. クラウド提供のGemini APIを利用する場合 (バックエンドプロキシ)
+    try {
+      const res = await fetch('/api/generate-comment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
       });
-      if (response.text) return response.text.trim();
+      if (res.ok) {
+        const data = await res.json();
+        if (data.text) return data.text.trim();
+      }
+    } catch (e) {
+      console.warn("Backend API fallback failed", e);
     }
     
     // 3. どちらも利用できない場合 (APIキーなしの静的公開環境など)
