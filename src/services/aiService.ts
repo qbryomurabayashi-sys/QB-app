@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
 let webLLMEngine: MLCEngine | null = null;
+let initEnginePromise: Promise<MLCEngine> | null = null;
 
 export type AIPersona = 'normal' | 'strict' | 'mild' | 'logical';
 
@@ -17,22 +18,28 @@ export const setLocalAiReady = (ready: boolean) => {
 // WebLLMのモデル名 (Gemma 2 2Bの軽量量子化モデル。WebLLMは初回ダウンロード後にブラウザのキャッシュに保存します)
 const SELECTED_MODEL = "gemma-2-2b-it-q4f16_1-MLC-1k"; 
 
+// 進行状況を共有するためのコールバックリスト
+let progressCallbacks: ((report: { progress: number, text: string }) => void)[] = [];
+
 // バックグラウンドでキャッシュをチェックし、存在すれば静かに初期化する
 const initAiBackground = async () => {
   try {
     const isCached = await hasModelInCache(SELECTED_MODEL);
-    if (isCached && !webLLMEngine) {
+    if (isCached && !webLLMEngine && !initEnginePromise) {
       console.log("Model is cached. Initializing in background...");
-      webLLMEngine = await CreateMLCEngine(SELECTED_MODEL, {
+      initEnginePromise = CreateMLCEngine(SELECTED_MODEL, {
         initProgressCallback: (report) => {
           console.log("Background init progress:", report.text);
+          progressCallbacks.forEach(cb => cb(report));
         }
       });
+      webLLMEngine = await initEnginePromise;
       isLocalAiReadyFlag = true;
       console.log("Background init complete!");
     }
   } catch (error) {
     console.warn("Background init failed", error);
+    initEnginePromise = null;
   }
 };
 
@@ -41,22 +48,43 @@ initAiBackground();
 
 export const downloadGemmaModel = async (onProgress: (progress: number, text?: string) => void): Promise<void> => {
   if (webLLMEngine) {
-    onProgress(100, "Ready");
+    onProgress(100, "準備完了");
     return;
   }
   
+  // 既に初期化中ならそれに乗っかる
+  if (initEnginePromise) {
+    const cb = (report: { progress: number, text: string }) => {
+      onProgress(Math.round(report.progress * 100), report.text);
+    };
+    progressCallbacks.push(cb);
+    try {
+      await initEnginePromise;
+      onProgress(100, "準備完了");
+      isLocalAiReadyFlag = true;
+      return;
+    } catch (error) {
+       // エラー時はフォールスルーして再度試行
+       initEnginePromise = null;
+    } finally {
+      progressCallbacks = progressCallbacks.filter(c => c !== cb);
+    }
+  }
+  
   try {
-    const engine = await CreateMLCEngine(SELECTED_MODEL, {
+    initEnginePromise = CreateMLCEngine(SELECTED_MODEL, {
       initProgressCallback: (report) => {
         onProgress(Math.round(report.progress * 100), report.text);
+        progressCallbacks.forEach(cb => cb(report));
       }
     });
     
-    webLLMEngine = engine;
+    webLLMEngine = await initEnginePromise;
     isLocalAiReadyFlag = true;
     onProgress(100, "準備完了");
   } catch (error) {
     webLLMEngine = null;
+    initEnginePromise = null;
     isLocalAiReadyFlag = false;
     console.error("WebLLM Error:", error);
     onProgress(0, `エラーが発生しました: ${error instanceof Error ? error.message : String(error)}`);
