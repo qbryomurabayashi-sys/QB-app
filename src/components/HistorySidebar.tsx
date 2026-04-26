@@ -23,69 +23,65 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
 }) => {
   return (
     <>
-      {isOpen && <div className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm transition-opacity" onClick={onClose} />}
-      <div className={`fixed inset-y-0 right-0 z-[70] w-80 sm:w-96 bg-black border-l-4 border-ff-silver/30 shadow-[-10px_0_50px_rgba(0,0,0,0.8)] transform transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col font-serif`}>
-        <div className="mist-container opacity-30">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="mist-particle" style={{ width: '200px', height: '200px', left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${i * 3}s` }} />
-          ))}
-        </div>
-        
-        <div className="p-6 bg-ff-blue-top/20 border-b border-ff-silver/20 relative z-10">
+      <div 
+        className={`fixed inset-0 bg-black/40 z-[60] backdrop-blur-[2px] transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
+        onClick={onClose} 
+      />
+      <div className={`fixed inset-y-0 right-0 z-[70] w-80 sm:w-96 bg-white border-l shadow-2xl transform transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col font-sans`}>
+        <div className="p-6 bg-gray-50 border-b">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-ff-gold flex items-center gap-3 uppercase tracking-[0.2em] text-lg">
-              <History size={24} /> 記録の書庫
+            <h3 className="font-bold text-gray-800 flex items-center gap-2 uppercase tracking-tight">
+              <History size={20} className="text-blue-600" /> 履歴アーカイブ
             </h3>
-            <button onClick={onClose} className="p-2 text-ff-silver hover:text-ff-gold transition-colors relative group">
-              <span className="ff-cursor !-left-10 !top-0"></span>
-              <X size={28} />
+            <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+              <X size={24} />
             </button>
           </div>
           {metadata && (
-            <div className="text-xs text-ff-silver bg-black/40 p-4 border border-ff-silver/20 shadow-inner uppercase tracking-widest rounded-sm">
-              <div className="flex justify-between border-b border-ff-silver/10 pb-2 mb-2">
-                <span className="font-bold text-ff-gold">{metadata.store}</span>
-                <span className="font-bold text-white">{metadata.name}</span>
+            <div className="text-[10px] text-gray-500 bg-white p-4 border rounded-xl shadow-sm uppercase font-bold tracking-tight">
+              <div className="flex justify-between border-b pb-2 mb-2">
+                <span className="text-blue-600">{metadata.store}</span>
+                <span className="text-gray-800">{metadata.name}</span>
               </div>
-              <div className="text-ff-silver/50 text-[10px] text-right">個体識別番号: {metadata.employeeId}</div>
+              <div className="text-right tabular-nums">社員番号: {metadata.employeeId}</div>
             </div>
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar relative z-10">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {historyList.length === 0 ? (
-            <div className="text-center text-ff-silver/30 py-16 uppercase tracking-widest text-sm italic">
-              <p>記録が見つかりません</p>
+            <div className="text-center text-gray-400 py-12 text-sm font-bold uppercase tracking-tight">
+              <p>過去の記録がありません</p>
             </div>
           ) : (
             historyList.map(record => (
               <div
                 key={record.id}
-                className={`p-5 border-2 transition-all cursor-pointer relative overflow-hidden group rounded-sm ${record.id === currentId ? 'border-ff-gold bg-blue-900/30' : 'border-ff-silver/10 bg-black/40 hover:border-ff-silver/40'}`}
+                className={`p-4 border rounded-xl transition-all cursor-pointer relative group ${record.id === currentId ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-100' : 'border-gray-100 bg-white hover:border-gray-200'}`}
                 onClick={() => onSelect(record.id)}
               >
-                <div className="flex justify-between items-start mb-3">
-                  <span className="font-bold text-ff-gold text-base uppercase tracking-widest">{record.date}</span>
+                <div className="flex justify-between items-start mb-2">
+                  <span className="font-bold text-gray-800 text-sm tabular-nums">{record.date}</span>
                   {record.id === currentId && (
-                    <span className="bg-ff-gold text-black text-[10px] px-2 py-1 font-bold uppercase animate-pulse rounded-sm">
-                      編集中
+                    <span className="bg-blue-600 text-white text-[8px] px-2 py-0.5 font-bold uppercase rounded-md tracking-tighter">
+                      編集中のレコード
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-ff-silver/70 mb-3 uppercase tracking-widest">
-                  記録者: {record.evaluator || '不明'}
+                <div className="text-[10px] text-gray-400 font-bold uppercase mb-4">
+                  作成者: {record.evaluator || '-'}
                 </div>
-                <div className="flex items-center gap-3 mt-4 pt-4 border-t border-ff-silver/10">
+                <div className="flex items-center gap-3 pt-3 border-t">
                   <div className="flex-1">
-                    <span className="text-[10px] text-ff-silver/50 uppercase tracking-widest">総合共鳴率</span>
-                    <div className="text-2xl font-bold text-ff-sky">{record.totalScore || record.performanceScore || '0'}%</div>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase block mb-0.5">総合点</span>
+                    <div className="text-xl font-bold text-blue-900 tabular-nums">{record.totalScore || record.performanceScore || '0'} <span className="text-[10px] text-blue-400 ml-0.5 uppercase">pts</span></div>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); onCompare(record); }}
-                    className="ff-button !px-4 !py-2 text-xs flex items-center gap-2 group"
+                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+                    title="比較対象に設定"
                   >
-                    <span className="ff-cursor !-left-4"></span>
-                    <Layers size={16} /> 比較
+                    <Layers size={16} />
                   </button>
                 </div>
               </div>

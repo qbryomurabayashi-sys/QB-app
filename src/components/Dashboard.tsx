@@ -16,9 +16,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, onBackup, onRe
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-[100dvh] gpu-accelerate bg-gray-50 flex flex-col">
       {/* Header with Hamburger */}
-      <header className="bg-[#00205b] text-white p-4 shadow-md sticky top-0 z-50">
+      <header className="bg-[#00205b] text-white p-4 shadow-md sticky top-12 z-50">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Store className="text-blue-400" size={28} />

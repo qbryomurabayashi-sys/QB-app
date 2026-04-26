@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Zap, Calendar, Tag } from 'lucide-react';
+import { ArrowLeft, Zap, Calendar } from 'lucide-react';
 
 interface VersionUpdate {
   version: string;
@@ -11,48 +11,59 @@ interface VersionUpdate {
 
 const UPDATES: VersionUpdate[] = [
   {
-    version: '2.3.0',
-    date: '2026-03-11',
-    title: '幻想の再構築：クリスタル・レコードへの昇華',
+    version: '2.4.0',
+    date: '2026-04-26',
+    title: 'シェアリング & デザイン・アップデート',
     type: 'major',
     changes: [
-      'UIを「クリスタル・レコード」幻想テーマへ全面的に刷新。',
-      'すべてのインターフェースを日本語に翻訳。',
-      'シニアユーザーに配慮し、フォントサイズと視認性を大幅に向上。',
-      '操作カーソルを「クリスタル」に変更。',
-      '霧のパーティクル効果と幻想的なローディング画面を実装。'
+      '個別スタッフデータの共有コード・ファイル共有機能を実装。',
+      '起動時のプロフェッショナル・ローディング画面（3.5秒）を実装。',
+      'モバイル端末用ホーム画面アイコンの設定。',
+      '共有データ取込時の新規登録自動処理機能を実装。'
+    ]
+  },
+  {
+    version: '2.3.0',
+    date: '2026-03-11',
+    title: '評価システムの刷新とUIの強化',
+    type: 'major',
+    changes: [
+      'ユーザーインターフェースの全面的な見直しと視認性の向上。',
+      'すべてのラベルとテキストのローカライズ適正化。',
+      'アクセシビリティに配慮し、フォントサイズとコントラストを調整。',
+      'パフォーマンスの最適化と読み込み時間の短縮。'
     ]
   },
   {
     version: '2.2.1',
     date: '2026-03-06',
-    title: '翻訳同期の修正 ＆ ロジック調整',
+    title: '不具合修正と安定性の向上',
     type: 'patch',
     changes: [
-      'ブラウザの自動翻訳による表示崩れを防止。',
-      '一括出力時のインシデント減点同期エラーを修正。'
+      'ブラウザの自動翻訳機能によるレイアウト崩れの修正。',
+      '一括データ出力時のスコアリング計算ロジックの不具合を解消。'
     ]
   },
   {
     version: '2.2.0',
     date: '2026-03-04',
-    title: 'UI最適化 ＆ レーダー再調整',
+    title: 'UI/UXの改善とレーダーチャートの調整',
     type: 'minor',
     changes: [
-      'スコア選択時の評価基準ガイドの視認性を向上。',
-      '非操作時のガイドを非表示にし、視覚的ノイズを軽減。',
-      'レーダーチャートの軸を従来指標に戻し、同期性を改善。'
+      '評価基準ガイドの操作性と視覚的フィードバックを改善。',
+      '不要なUI要素を削減し、入力作業の効率を向上。',
+      'レーダーチャートの各指標軸を調整し、正確なデータ表示を実現。'
     ]
   },
   {
     version: '2.1.0',
     date: '2026-02-24',
-    title: '行動計画の統合 ＆ システム刷新',
+    title: '店長アクションプラン機能の統合',
     type: 'major',
     changes: [
-      '指揮官の行動計画管理モジュールを統合。',
-      'ナビゲーション向上のためハンバーガーメニューを実装。',
-      '更新履歴 ＆ 操作マニュアルのチャンネルを配備。'
+      '管理者（店長）向けの四半期アクションプラン作成モジュールの新規追加。',
+      'ナビゲーションメニューの刷新。',
+      '更新履歴および操作マニュアルの追加。'
     ]
   }
 ];
@@ -63,49 +74,42 @@ interface VersionInfoProps {
 
 export const VersionInfo: React.FC<VersionInfoProps> = ({ onBack }) => {
   return (
-    <div className="min-h-screen bg-black flex flex-col font-serif relative overflow-hidden">
-      <div className="mist-container opacity-20">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="mist-particle" style={{ width: '250px', height: '250px', left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${i * 2.5}s` }} />
-        ))}
-      </div>
-      
-      <header className="bg-ff-blue-top text-white p-6 sticky top-0 z-40 border-b-4 border-ff-silver/30 shadow-lg">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <header className="bg-white border-b sticky top-0 z-40 p-4">
         <div className="max-w-3xl mx-auto flex items-center gap-4">
-          <button onClick={onBack} className="p-2 text-ff-silver hover:text-ff-gold transition-colors relative group">
-            <span className="ff-cursor !-left-10"></span>
-            <ArrowLeft size={32} />
+          <button onClick={onBack} className="p-2 text-gray-500 hover:text-blue-600 transition-colors">
+            <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.2em] text-ff-gold">システム更新履歴</h1>
+          <h1 className="text-xl font-bold text-gray-800">更新履歴 (Changelog)</h1>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto p-6 sm:p-8 flex-grow w-full relative z-10">
-        <div className="space-y-8">
-          {UPDATES.map((update, idx) => (
-            <div key={update.version} className="ff-window overflow-hidden">
-              <div className={`p-5 flex justify-between items-center border-b border-ff-silver/20 ${
-                update.type === 'major' ? 'bg-ff-blue-top/20' : 'bg-black/40'
+      <main className="max-w-3xl mx-auto p-6 sm:p-8 flex-grow w-full">
+        <div className="space-y-6">
+          {UPDATES.map((update) => (
+            <div key={update.version} className="bg-white border rounded-xl overflow-hidden shadow-sm">
+              <div className={`p-4 flex justify-between items-center border-b ${
+                update.type === 'major' ? 'bg-blue-50/50' : 'bg-gray-50/50'
               }`}>
                 <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 border text-xs font-bold uppercase rounded-sm ${
-                    update.type === 'major' ? 'bg-ff-gold text-black border-ff-gold' : 
-                    update.type === 'minor' ? 'bg-ff-sky text-black border-ff-sky' : 'bg-black text-ff-silver border-ff-silver/40'
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight border ${
+                    update.type === 'major' ? 'bg-blue-600 text-white border-blue-600' : 
+                    update.type === 'minor' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-white text-gray-400 border-gray-200'
                   }`}>
                     v{update.version}
                   </span>
-                  <h2 className="font-bold text-ff-gold text-base uppercase tracking-widest">{update.title}</h2>
+                  <h2 className="font-bold text-sm text-gray-800">{update.title}</h2>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-ff-silver/70 uppercase tracking-widest">
-                  <Calendar size={14} />
+                <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase">
+                  <Calendar size={12} />
                   {update.date}
                 </div>
               </div>
-              <div className="p-6">
-                <ul className="space-y-4">
+              <div className="p-5">
+                <ul className="space-y-3">
                   {update.changes.map((change, cIdx) => (
-                    <li key={cIdx} className="flex items-start gap-3 text-sm sm:text-base text-ff-silver/90 leading-relaxed">
-                      <Zap size={16} className="mt-1 text-ff-gold shrink-0" />
+                    <li key={cIdx} className="flex items-start gap-3 text-xs text-gray-600 leading-relaxed">
+                      <Zap size={14} className="mt-0.5 text-blue-500 shrink-0" />
                       {change}
                     </li>
                   ))}
@@ -115,9 +119,9 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({ onBack }) => {
           ))}
         </div>
 
-        <div className="mt-16 text-center text-ff-silver/30 text-xs uppercase tracking-[0.3em]">
-          <p>© 2026 CRYSTAL_RECORDS_DEV_TEAM</p>
-        </div>
+        <footer className="mt-12 text-center text-gray-300 text-[10px] font-bold uppercase tracking-widest pb-8">
+          <p>© 2026 Developer Team</p>
+        </footer>
       </main>
     </div>
   );

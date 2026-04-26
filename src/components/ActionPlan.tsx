@@ -1,518 +1,736 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Check, Copy, BookOpen, AlertCircle, X, Trash2, Save, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Check, Copy, BookOpen, AlertCircle, X, Trash2, Save, ChevronDown } from 'lucide-react';
 
-interface ActionPlanData {
-  storeName: string;
-  managerName: string;
-  visionBlock: string;
-  visionArea: string;
-  visionShop: string;
-  currentAnalysis: string;
-  issues: string;
-  goal: string;
-  planQ1: string;
-  planQ2: string;
-  planQ3: string;
-  planQ4: string;
-  finalResult1: string;
-  finalResult2: string;
-  finalResult3: string;
-}
-
-const INITIAL_DATA: ActionPlanData = {
-  storeName: '',
-  managerName: '',
-  visionBlock: '',
-  visionArea: '',
-  visionShop: '',
-  currentAnalysis: '',
-  issues: '',
-  goal: '',
-  planQ1: '',
-  planQ2: '',
-  planQ3: '',
-  planQ4: '',
-  finalResult1: '',
-  finalResult2: '',
-  finalResult3: ''
+const INITIAL_DATA = {
+    storeName: '',
+    managerName: '',
+    visionBlock: '',
+    visionArea: '',
+    visionShop: '',
+    currentAnalysis: '',
+    issues: '',
+    goal: '',
+    planQ1: '',
+    planQ2: '',
+    planQ3: '',
+    planQ4: '',
+    finalResult1: '',
+    finalResult2: '',
+    finalResult3: ''
 };
 
 const STORAGE_KEY = 'qb_action_plan_data_v2';
 
-interface ActionPlanProps {
-  onBack: () => void;
-}
+const useActionPlan = () => {
+    const [formData, setFormData] = useState(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if ('finalResult' in parsed) {
+                    if (!parsed.finalResult1) parsed.finalResult1 = parsed.finalResult;
+                    delete parsed.finalResult;
+                }
+                return { ...INITIAL_DATA, ...parsed };
+            }
+        } catch (e) {
+            console.error('Failed to load data', e);
+        }
+        return { ...INITIAL_DATA };
+    });
 
-export const ActionPlan: React.FC<ActionPlanProps> = ({ onBack }) => {
-  const [formData, setFormData] = useState<ActionPlanData>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return { ...INITIAL_DATA, ...parsed };
-      }
-    } catch (e) {
-      console.error('Failed to load data', e);
-    }
-    return { ...INITIAL_DATA };
-  });
+    const [isCopied, setIsCopied] = useState(false);
+    const [saveStatus, setSaveStatus] = useState('idle');
 
-  const [isCopied, setIsCopied] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+        }, 1000);
+        return () => clearTimeout(handler);
+    }, [formData]);
 
-  // Auto-save effect
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-    }, 1000);
-    return () => clearTimeout(handler);
-  }, [formData]);
+    const updateField = useCallback((field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    }, []);
 
-  const updateField = useCallback((field: keyof ActionPlanData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  }, []);
+    const resetForm = useCallback(() => {
+        if (window.confirm('入力内容をすべて消去しますか？\n（リセット後は元に戻せません）')) {
+            const emptyData = { ...INITIAL_DATA };
+            setFormData(emptyData);
+            setSaveStatus('idle');
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(emptyData));
+            } catch (e) {
+                console.error('Failed to reset storage', e);
+            }
+        }
+    }, []);
 
-  const resetForm = useCallback(() => {
-    if (window.confirm('入力内容をすべて消去しますか？\n（リセット後は元に戻せません）')) {
-      const emptyData = { ...INITIAL_DATA };
-      setFormData(emptyData);
-      setSaveStatus('idle');
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(emptyData));
-    }
-  }, []);
+    const manualSave = useCallback(() => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+            setSaveStatus('saved');
+            setTimeout(() => setSaveStatus('idle'), 2000);
+        } catch (e) {
+            console.error('Save failed', e);
+            alert('保存に失敗しました。ブラウザのストレージ容量を確認してください。');
+        }
+    }, [formData]);
 
-  const manualSave = useCallback(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch (e) {
-      console.error('Save failed', e);
-      alert('保存に失敗しました。');
-    }
-  }, [formData]);
+    const generateReport = useCallback(() => {
+        const f = formData;
+        const today = new Date().toLocaleDateString('ja-JP');
 
-  const generateReport = useCallback(() => {
-    const f = formData;
-    const today = new Date().toLocaleDateString('ja-JP');
-
-    return `【指揮官の行動計画】クリスタル・レコード V2.300
+        return `【店長】行動目標評価 アクションプラン管理シート
 --------------------------------
-所属店舗: ${f.storeName}
-店長氏名: ${f.managerName}
+店舗名：${f.storeName}
+氏　名：${f.managerName}
 --------------------------------
-■ ビジョン共鳴 (VISION_SYNC)
+■ ビジョン共有
 [ブロック] ${f.visionBlock}
-[エリア  ] ${f.visionArea}
-[店舗    ] ${f.visionShop}
+[エリア　] ${f.visionArea}
+[店　舗　] ${f.visionShop}
 
-■ 現状分析 (STATUS_ANALYSIS)
-[現状データ]
+■ 現状分析・課題
+[現状分析]
 ${f.currentAnalysis}
 
-[重要課題]
+[課題]
 ${f.issues}
 
-■ 目標地点 (TARGET_GOAL)
+■ 達成ゴール (到達点)
 ${f.goal}
 
-■ 行動計画プロトコル (ACTION_PLAN)
-[第1期 (7-9月)]
+■ 課題解決・ゴール達成に向けたアクションプラン
+[第1Q (7~9月)]
 ${f.planQ1}
 
-[第2期 (10-12月)]
+[第2Q (10~12月)]
 ${f.planQ2}
 
-[第3期 (1-3月)]
+[第3Q (1~3月)]
 ${f.planQ3}
 
-[第4期 (4-6月)]
+[第4Q (4~6月)]
 ${f.planQ4}
 
-■ 最終出力ログ (FINAL_OUTPUT)
+■ 最終結果
 1. ${f.finalResult1}
 2. ${f.finalResult2}
 3. ${f.finalResult3}
 --------------------------------
-生成日時: ${today}`;
-  }, [formData]);
+作成日: ${today}`;
+    }, [formData]);
 
-  const copyToClipboard = useCallback(async () => {
-    const text = generateReport();
-    try {
-      await navigator.clipboard.writeText(text);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    }
-  }, [generateReport]);
+    const copyToClipboard = useCallback(async () => {
+        const text = generateReport();
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+                setIsCopied(true);
+                setTimeout(() => setIsCopied(false), 2000);
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                setIsCopied(true);
+                setTimeout(() => setIsCopied(false), 2000);
+            }
+        } catch (err) {
+            console.error('Failed to copy', err);
+            alert('コピーできませんでした。プレビュー画面から手動でコピーしてください。');
+        }
+    }, [generateReport]);
 
-  return (
-    <div className="min-h-screen bg-black flex flex-col font-serif relative overflow-hidden">
-      <div className="mist-container opacity-20">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="mist-particle" style={{ width: '300px', height: '300px', left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${i * 2}s` }} />
-        ))}
-      </div>
-      
-      {/* Header */}
-      <header className="bg-ff-blue-top text-white p-5 sticky top-0 z-40 no-print border-b-4 border-ff-silver/30 shadow-lg">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="p-2 text-ff-silver hover:text-ff-gold transition-colors relative group">
-              <span className="ff-cursor !-left-10"></span>
-              <ArrowLeft size={32} />
-            </button>
-            <div>
-              <h1 className="text-lg sm:text-2xl font-bold leading-tight flex items-center gap-3 uppercase tracking-[0.2em] text-ff-gold">
-                <span>指揮官の行動計画書</span>
-                <span className="hidden md:inline bg-black/40 text-xs px-3 py-1 border border-ff-silver/30 rounded-sm">V2.300</span>
-              </h1>
-              <p className="text-xs text-ff-silver/70 mt-1 uppercase tracking-widest">戦略的プロトコル管理</p>
-            </div>
-          </div>
-          <div className="flex gap-3">
+    return { formData, updateField, resetForm, manualSave, saveStatus, generateReport, copyToClipboard, isCopied };
+};
+
+const GuideSection: React.FC = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="bg-white rounded-lg shadow mb-6 overflow-hidden border border-gray-200 no-print">
             <button 
-              onClick={manualSave} 
-              className={`ff-button !px-6 !py-2 text-xs flex items-center gap-2 group ${
-                saveStatus === 'saved' ? 'bg-ff-sky text-black' : ''
-              }`}
+                onClick={() => setIsOpen(!isOpen)} 
+                className="w-full flex justify-between items-center p-4 bg-yellow-50 hover:bg-yellow-100 transition text-left border-l-4 border-blue-900"
             >
-              <span className="ff-cursor !-left-4"></span>
-              <Save size={18} />
-              {saveStatus === 'saved' ? '同期完了' : '一時保存'}
+                <div className="flex items-center gap-3">
+                    <BookOpen className="w-6 h-6 text-blue-900" />
+                    <div>
+                        <span className="text-xs font-bold text-gray-500 block mb-0.5">作成前に必ず確認</span>
+                        <h2 className="font-bold text-blue-900 text-lg">作成ガイド・店長の職務定義（虎の巻）</h2>
+                    </div>
+                </div>
+                <ChevronDown 
+                    className={`w-5 h-5 text-gray-500 transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+                />
             </button>
-            <button 
-              onClick={resetForm} 
-              className="ff-button !px-6 !py-2 text-xs flex items-center gap-2 group !bg-ff-red/20 !border-ff-red/40 hover:!bg-ff-red/40"
-            >
-              <span className="ff-cursor !-left-4"></span>
-              <Trash2 size={18} />
-              初期化
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-5xl mx-auto p-6 space-y-8 flex-grow pb-32 w-full relative z-10">
-        {/* Guide Section */}
-        <div className="ff-window mb-8 overflow-hidden no-print">
-          <button 
-            onClick={() => setIsGuideOpen(!isGuideOpen)} 
-            className="w-full flex justify-between items-center p-6 bg-ff-blue-top/10 hover:bg-ff-blue-top/20 transition text-left relative group"
-          >
-            <span className="ff-cursor !-left-4"></span>
-            <div className="flex items-center gap-4">
-              <BookOpen className="w-8 h-8 text-ff-gold" />
-              <div>
-                <span className="text-xs font-bold text-ff-silver/50 block mb-1 uppercase tracking-widest">初期化の前に一読ください</span>
-                <h2 className="font-bold text-ff-gold text-lg uppercase tracking-[0.2em]">指揮官の責務定義（聖典）</h2>
-              </div>
-            </div>
-            <ChevronDown 
-              className={`w-6 h-6 text-ff-silver transform transition-transform duration-300 ${isGuideOpen ? 'rotate-180' : ''}`} 
-            />
-          </button>
-          
-          {isGuideOpen && (
-            <div className="p-8 border-t border-ff-silver/20 bg-black/40 space-y-10">
-              <div className="bg-blue-900/20 border border-ff-silver/30 p-6 rounded-sm">
-                <h3 className="text-base font-bold text-ff-gold mb-4 border-b border-ff-silver/20 pb-3 flex items-center uppercase tracking-widest">
-                  <AlertCircle className="w-5 h-5 mr-3" />
-                  執行ルール
-                </h3>
-                <div className="space-y-4 text-sm">
-                  <div className="flex items-start">
-                    <span className="bg-ff-gold text-black font-bold px-3 py-1 mr-3 mt-0.5 shrink-0 rounded-sm text-xs">01</span>
-                    <div>
-                      <span className="font-bold text-ff-gold uppercase tracking-widest">計画の策定</span>
-                      <p className="text-ff-silver/80 mt-1">各期の開始時にAMと共に行動計画を確立せよ。</p>
+            
+            {isOpen && (
+                <div className="p-6 border-t border-gray-200 bg-white animate-fadeIn space-y-8">
+                    
+                    <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
+                        <h3 className="text-lg font-bold text-sky-900 mb-3 border-b border-sky-200 pb-2 flex items-center">
+                            <AlertCircle className="w-5 h-5 mr-2" />
+                            実施ルール
+                        </h3>
+                        <div className="space-y-3">
+                            <div className="flex items-start">
+                                <span className="bg-sky-600 text-white text-xs font-bold px-2 py-1 rounded mr-2 mt-0.5 shrink-0">1</span>
+                                <div>
+                                    <span className="font-bold text-sky-900">アクションプラン設定</span>
+                                    <p className="text-sm text-sky-800">期初にAM（BM）と店長でアクションプランを立ててください。</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start">
+                                <span className="bg-sky-600 text-white text-xs font-bold px-2 py-1 rounded mr-2 mt-0.5 shrink-0">2</span>
+                                <div>
+                                    <span className="font-bold text-sky-900">振り返り</span>
+                                    <p className="text-sm text-sky-800">四半期ごとに進捗の振り返りと軌道修正を実施してください。</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start">
+                                <span className="bg-sky-600 text-white text-xs font-bold px-2 py-1 rounded mr-2 mt-0.5 shrink-0">3</span>
+                                <div>
+                                    <span className="font-bold text-sky-900">期末に提出</span>
+                                    <p className="text-sm text-sky-800">最終結果をご記入の上、AM→BM経由で人事部へご提出ください。</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  <div className="flex items-start">
-                    <span className="bg-ff-gold text-black font-bold px-3 py-1 mr-3 mt-0.5 shrink-0 rounded-sm text-xs">02</span>
+
                     <div>
-                      <span className="font-bold text-ff-gold uppercase tracking-widest">振り返りと修正</span>
-                      <p className="text-ff-silver/80 mt-1">四半期ごとにレビューを行い、必要に応じて軌道修正を行え。</p>
+                        <h3 className="text-lg font-bold text-gray-800 border-l-4 border-blue-900 pl-3 mb-4">店長の職務定義</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-gray-50 border-2 border-gray-200 p-4 rounded-lg shadow-sm flex flex-col">
+                                <div className="font-bold text-xl text-gray-600 mb-3 text-center border-b border-gray-200 pb-2">目 標</div>
+                                <ul className="list-disc list-inside space-y-2 text-sm text-gray-700 flex-grow font-medium">
+                                    <li>店舗売上の最大化</li>
+                                    <li>スタッフ育成とチーム結束力向上</li>
+                                </ul>
+                            </div>
+                            <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-lg shadow-sm flex flex-col">
+                                <div className="font-bold text-xl text-blue-800 mb-3 text-center border-b border-blue-200 pb-2">役 割</div>
+                                <ul className="list-disc list-inside space-y-2 text-sm text-blue-900 flex-grow font-medium">
+                                    <li>1店舗の管理を担当する</li>
+                                    <li>スタッフの指導と育成を行い、チームのモチベーションを高める</li>
+                                    <li>顧客満足度向上と高品質なサービスの提供に尽力する</li>
+                                    <li>メンバーと共に成果を上げることを重視する</li>
+                                </ul>
+                                <div className="mt-3 pt-2 border-t border-blue-200 text-xs text-center text-blue-700 font-bold">
+                                    現場のリーダーとして模範となり牽引する
+                                </div>
+                            </div>
+                            <div className="bg-indigo-50 border-2 border-indigo-200 p-4 rounded-lg shadow-sm flex flex-col">
+                                <div className="font-bold text-xl text-indigo-800 mb-3 text-center border-b border-indigo-200 pb-2">責 任</div>
+                                <ul className="list-disc list-inside space-y-2 text-sm text-indigo-900 flex-grow font-medium">
+                                    <li>店舗の日常運営管理全般</li>
+                                    <li>スタッフの育成、評価</li>
+                                    <li>サービスレベルの維持と顧客満足度向上</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  <div className="flex items-start">
-                    <span className="bg-ff-gold text-black font-bold px-3 py-1 mr-3 mt-0.5 shrink-0 rounded-sm text-xs">03</span>
+
                     <div>
-                      <span className="font-bold text-ff-gold uppercase tracking-widest">最終報告</span>
-                      <p className="text-ff-silver/80 mt-1">AM/BMを通じて、最終的なログを本部に提出せよ。</p>
+                        <h3 className="text-lg font-bold text-gray-800 border-l-4 border-blue-900 pl-3 mb-4">店長の主なマネジメント任務</h3>
+                        <div className="space-y-4 text-sm">
+                            <div className="flex flex-col md:flex-row border border-indigo-200 rounded-lg overflow-hidden shadow-sm">
+                                <div className="bg-blue-900 text-white p-3 md:w-24 flex items-center justify-center font-bold shrink-0">運 営</div>
+                                <div className="bg-indigo-50 p-3 w-full">
+                                    <p className="text-gray-700 text-xs leading-relaxed">
+                                        ・開閉店作業 ・金銭管理 ・シフト及び勤怠管理 ・サービスオペレーション管理<br/>
+                                        ・備品 / 設備管理 ・安全衛生管理 ・労務管理(36協定、ハラスメント防止)<br/>
+                                        ・顧客対応(問い合わせ、クレーム) ・休憩時間管理<br/>
+                                        ・売上 / 利益向上施策(販促実施協力、来店客数分析、予実管理)<br/>
+                                        ・会議出席(社内会議、テナント会議) ・報告連絡相談 ・期日管理 ・帳票類管理
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col md:flex-row border border-cyan-200 rounded-lg overflow-hidden shadow-sm">
+                                <div className="bg-cyan-500 text-white p-3 md:w-24 flex items-center justify-center font-bold shrink-0">育 成</div>
+                                <div className="bg-cyan-50 p-3 w-full">
+                                    <p className="text-gray-700 text-xs leading-relaxed">
+                                        ・部下育成(オペレーション改善指導、技術指導、新人指導) ・後進育成 ・育成面談<br/>
+                                        ・スタイリスト評価 ・フィードバック面談
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col md:flex-row border border-blue-200 rounded-lg overflow-hidden shadow-sm">
+                                <div className="bg-blue-900 text-white p-3 md:w-24 flex items-center justify-center font-bold shrink-0">関 係</div>
+                                <div className="bg-white p-3 w-full">
+                                    <p className="text-gray-700 text-xs leading-relaxed">
+                                        ・倫理保持 ・コンプライアンス ・定期面談 ・店舗ミーティング開催<br/>
+                                        ・懇親会 ・情報共有
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
+
+                    <div>
+                        <div className="bg-black text-white p-3 text-center font-bold text-lg mb-4 rounded-t">
+                            SMARTの法則による5つの目標設定基準
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center bg-white border rounded shadow-sm overflow-hidden">
+                                <div className="bg-[#3498db] text-white w-12 h-12 flex items-center justify-center text-2xl font-bold shrink-0">S</div>
+                                <div className="px-4 py-2 flex-grow grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                                    <div className="font-bold text-lg">Specific</div>
+                                    <div className="text-sm text-gray-500 font-bold">(具体的な)</div>
+                                    <div className="text-sm text-[#3498db] font-bold">目標に具体性があるか</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center bg-white border rounded shadow-sm overflow-hidden">
+                                <div className="bg-[#3498db] text-white w-12 h-12 flex items-center justify-center text-2xl font-bold shrink-0">M</div>
+                                <div className="px-4 py-2 flex-grow grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                                    <div className="font-bold text-lg">Measurable</div>
+                                    <div className="text-sm text-gray-500 font-bold">(測定可能な)</div>
+                                    <div className="text-sm text-[#3498db] font-bold">目標が測定可能か</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center bg-white border rounded shadow-sm overflow-hidden">
+                                <div className="bg-[#3498db] text-white w-12 h-12 flex items-center justify-center text-2xl font-bold shrink-0">A</div>
+                                <div className="px-4 py-2 flex-grow grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                                    <div className="font-bold text-lg">Assignable</div>
+                                    <div className="text-sm text-gray-500 font-bold">(実現可能な)</div>
+                                    <div className="text-sm text-[#3498db] font-bold">目標が達成可能か</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center bg-white border rounded shadow-sm overflow-hidden">
+                                <div className="bg-[#3498db] text-white w-12 h-12 flex items-center justify-center text-2xl font-bold shrink-0">R</div>
+                                <div className="px-4 py-2 flex-grow grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                                    <div className="font-bold text-lg">Realistic</div>
+                                    <div className="text-sm text-gray-500 font-bold">(関連性のある)</div>
+                                    <div className="text-sm text-[#3498db] font-bold">ほかの目標との関連性があるか</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center bg-white border rounded shadow-sm overflow-hidden">
+                                <div className="bg-[#3498db] text-white w-12 h-12 flex items-center justify-center text-2xl font-bold shrink-0">T</div>
+                                <div className="px-4 py-2 flex-grow grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                                    <div className="font-bold text-lg">Time-bound</div>
+                                    <div className="text-sm text-gray-500 font-bold">(期限が明確な)</div>
+                                    <div className="text-sm text-[#3498db] font-bold">いつまでに目標達成するか</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-
-              <div>
-                <h3 className="text-base font-bold text-ff-gold border-l-4 border-ff-gold pl-4 mb-6 uppercase tracking-widest">指揮官の役割</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-black/40 border border-ff-silver/20 p-6 rounded-sm shadow-inner">
-                    <div className="font-bold text-base text-ff-silver mb-4 text-center border-b border-ff-silver/10 pb-3 uppercase tracking-widest">目的</div>
-                    <ul className="list-disc list-inside space-y-3 text-sm text-ff-silver/80">
-                      <li>店舗収益の最大化</li>
-                      <li>スタッフの成長とチームの共鳴</li>
-                    </ul>
-                  </div>
-                  <div className="bg-black/40 border border-ff-silver/20 p-6 rounded-sm shadow-inner">
-                    <div className="font-bold text-base text-ff-silver mb-4 text-center border-b border-ff-silver/10 pb-3 uppercase tracking-widest">役割</div>
-                    <ul className="list-disc list-inside space-y-3 text-sm text-ff-silver/80">
-                      <li>単一店舗ユニットの管理</li>
-                      <li>スタッフの指導と士気の向上</li>
-                      <li>高品質なサービスの維持</li>
-                    </ul>
-                  </div>
-                  <div className="bg-black/40 border border-ff-silver/20 p-6 rounded-sm shadow-inner">
-                    <div className="font-bold text-base text-ff-silver mb-4 text-center border-b border-ff-silver/10 pb-3 uppercase tracking-widest">責任</div>
-                    <ul className="list-disc list-inside space-y-3 text-sm text-ff-silver/80">
-                      <li>日々の店舗運営</li>
-                      <li>スタッフの評価とトレーニング</li>
-                      <li>サービスレベルの閾値維持</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Form Section */}
-        <div className="ff-window p-8 md:p-12 !border-t-8 !border-ff-gold relative">
-          <div className="mist-container opacity-10">
-            <div className="mist-particle" style={{ width: '400px', height: '400px', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }} />
-          </div>
-          
-          {/* Sheet Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 border-b-2 border-ff-silver/20 pb-8 gap-6 relative z-10">
-            <h2 className="text-2xl font-bold text-ff-gold uppercase tracking-[0.2em]">
-              行動計画プロトコル<br/>
-              <span className="text-sm text-ff-silver/50 font-normal tracking-widest">戦略的管理ログ</span>
-            </h2>
-            <div className="flex flex-col sm:flex-row gap-6 w-full md:w-auto">
-              <div className="flex-1 md:w-64">
-                <label className="block text-xs font-bold text-ff-silver/70 mb-2 uppercase tracking-widest">所属店舗</label>
-                <input 
-                  type="text" 
-                  value={formData.storeName}
-                  onChange={(e) => updateField('storeName', e.target.value)}
-                  placeholder="店舗名を入力..." 
-                  className="ff-input w-full p-4 text-base"
-                />
-              </div>
-              <div className="flex-1 md:w-64">
-                <label className="block text-xs font-bold text-ff-silver/70 mb-2 uppercase tracking-widest">店長氏名</label>
-                <input 
-                  type="text" 
-                  value={formData.managerName}
-                  onChange={(e) => updateField('managerName', e.target.value)}
-                  placeholder="氏名を入力..." 
-                  className="ff-input w-full p-4 text-base"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Vision Section */}
-          <section className="mb-12 relative z-10">
-            <div className="flex items-center mb-6">
-              <h3 className="text-base font-bold text-ff-gold border-l-4 border-ff-gold pl-4 uppercase tracking-widest">ビジョン共鳴</h3>
-              <div className="ml-4 text-[10px] bg-ff-red text-white px-3 py-1 font-bold shadow-[0_0_15px_rgba(255,51,51,0.4)] uppercase tracking-widest rounded-sm">
-                戦略ロジック
-              </div>
-            </div>
-            <div className="space-y-6">
-              {[
-                { label: 'ブロックビジョン', field: 'visionBlock' as const },
-                { label: 'エリアビジョン', field: 'visionArea' as const },
-                { label: '店舗ビジョン', field: 'visionShop' as const }
-              ].map((item) => (
-                <div key={item.field} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <div className="md:col-span-3">
-                    <label className="text-xs font-bold text-ff-silver/70 bg-ff-blue-top/20 px-4 py-2 border border-ff-silver/20 block text-center md:text-right uppercase tracking-widest rounded-sm">{item.label}</label>
-                  </div>
-                  <div className="md:col-span-9">
-                    <input 
-                      type="text" 
-                      value={formData[item.field]}
-                      onChange={(e) => updateField(item.field, e.target.value)}
-                      className="ff-input w-full p-4 text-base" 
-                      placeholder={`${item.label}を入力...`}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Analysis & Issues */}
-          <section className="mb-12 relative z-10">
-            <h3 className="text-base font-bold text-ff-gold border-l-4 border-ff-gold pl-4 mb-6 uppercase tracking-widest">現状分析</h3>
-            <div className="space-y-8">
-              <div>
-                <label className="flex items-center text-xs font-bold text-ff-silver/70 mb-3 uppercase tracking-widest">
-                  <span className="bg-ff-gold text-black w-6 h-6 flex items-center justify-center mr-3 text-xs rounded-sm">01</span>
-                  現状データ分析
-                </label>
-                <textarea 
-                  rows={4} 
-                  value={formData.currentAnalysis}
-                  onChange={(e) => updateField('currentAnalysis', e.target.value)}
-                  className="ff-input w-full p-4 text-base" 
-                  placeholder="現在の店舗状況を詳細に記述してください..."
-                />
-              </div>
-              <div>
-                <label className="flex items-center text-xs font-bold text-ff-silver/70 mb-3 uppercase tracking-widest">
-                  <span className="bg-ff-gold text-black w-6 h-6 flex items-center justify-center mr-3 text-xs rounded-sm">02</span>
-                  重要課題の特定
-                </label>
-                <textarea 
-                  rows={4} 
-                  value={formData.issues}
-                  onChange={(e) => updateField('issues', e.target.value)}
-                  className="ff-input w-full p-4 text-base" 
-                  placeholder="解決すべき重要課題を記述してください..."
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Goal */}
-          <section className="mb-12 relative z-10">
-            <h3 className="text-base font-bold text-ff-gold border-l-4 border-ff-gold pl-4 mb-6 uppercase tracking-widest">目標地点 (到達点)</h3>
-            <textarea 
-              rows={3} 
-              value={formData.goal}
-              onChange={(e) => updateField('goal', e.target.value)}
-              className="ff-input w-full p-5 font-bold text-ff-sky text-lg" 
-              placeholder="具体的な成功指標を定義してください..."
-            />
-          </section>
-
-          {/* Quarterly Plan */}
-          <section className="mb-12 relative z-10">
-            <h3 className="text-base font-bold text-ff-gold border-l-4 border-ff-gold pl-4 mb-6 uppercase tracking-widest">行動計画プロトコル</h3>
-            <div className="border border-ff-silver/20 overflow-hidden rounded-sm">
-              {[
-                { q: '第1期', months: '7月-9月', field: 'planQ1' as const },
-                { q: '第2期', months: '10月-12月', field: 'planQ2' as const },
-                { q: '第3期', months: '1月-3月', field: 'planQ3' as const },
-                { q: '第4期', months: '4月-6月', field: 'planQ4' as const }
-              ].map((item) => (
-                <div key={item.field} className="grid grid-cols-12 border-b border-ff-silver/20 last:border-b-0">
-                  <div className="col-span-3 md:col-span-2 p-4 text-center border-r border-ff-silver/20 bg-ff-blue-top/10 flex flex-col justify-center items-center">
-                    <span className="font-bold text-ff-gold text-base uppercase tracking-widest">{item.q}</span>
-                    <span className="text-[10px] text-ff-silver/50 font-bold uppercase tracking-widest mt-1">{item.months}</span>
-                  </div>
-                  <div className="col-span-9 md:col-span-10 p-4">
-                    <textarea 
-                      rows={3} 
-                      value={formData[item.field]}
-                      onChange={(e) => updateField(item.field, e.target.value)}
-                      className="ff-input w-full p-3 text-sm" 
-                      placeholder="具体的なアクションを入力..."
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Final Result */}
-          <section className="relative z-10">
-            <h3 className="text-base font-bold text-ff-gold border-l-4 border-ff-gold pl-4 mb-6 uppercase tracking-widest">最終出力ログ</h3>
-            <div className="space-y-6 bg-ff-blue-top/5 p-6 border border-ff-silver/20 rounded-sm">
-              {(['finalResult1', 'finalResult2', 'finalResult3'] as const).map((field, idx) => (
-                <div key={field}>
-                  <label className="block text-xs font-bold text-ff-silver/50 mb-2 uppercase tracking-widest">結果ログ_{idx + 1}</label>
-                  <textarea 
-                    rows={2} 
-                    value={formData[field]}
-                    onChange={(e) => updateField(field, e.target.value)}
-                    className="ff-input w-full p-4 text-sm" 
-                    placeholder="達成データや成果を記録..."
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-      </main>
-
-      {/* Sticky Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-ff-blue-top/90 border-t-4 border-ff-silver/30 p-5 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] z-50 no-print backdrop-blur-md">
-        <div className="max-w-5xl mx-auto flex gap-4">
-          <button 
-            onClick={() => setIsPreviewOpen(true)} 
-            className="flex-1 ff-button py-4 text-sm uppercase tracking-[0.2em] flex items-center justify-center gap-3 group"
-          >
-            <span className="ff-cursor !-left-4"></span>
-            <BookOpen size={20}/>
-            プレビュー
-          </button>
-          <button 
-            onClick={copyToClipboard} 
-            className={`flex-[2] ff-button py-4 text-sm uppercase tracking-[0.2em] flex items-center justify-center gap-3 group ${
-              isCopied ? 'bg-ff-sky text-black' : ''
-            }`}
-          >
-            <span className="ff-cursor !-left-4"></span>
-            {isCopied ? (
-              <><Check className="w-6 h-6" />同期完了</>
-            ) : (
-              <><Copy className="w-6 h-6" />レポート生成</>
             )}
-          </button>
         </div>
-      </footer>
+    );
+};
 
-      {/* Preview Modal */}
-      {isPreviewOpen && (
-        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4 backdrop-blur-md">
-          <div className="ff-window w-full max-w-3xl max-h-[85vh] flex flex-col shadow-[0_0_60px_rgba(0,0,0,1)]">
-            <div className="p-6 border-b border-ff-silver/20 flex justify-between items-center bg-ff-blue-top/20">
-              <h3 className="font-bold text-lg text-ff-gold flex items-center uppercase tracking-[0.2em]">
-                <Copy className="w-6 h-6 mr-3"/>
-                レポート・プレビュー
-              </h3>
-              <button onClick={() => setIsPreviewOpen(false)} className="text-ff-silver hover:text-ff-gold transition-colors p-2 relative group">
-                <span className="ff-cursor !-left-10"></span>
-                <X size={32} />
-              </button>
+const PreviewModal: React.FC<{ isOpen: boolean, onClose: () => void, reportText: string }> = ({ isOpen, onClose, reportText }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 transition-opacity animate-fadeIn">
+            <div className="bg-white rounded-lg w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl">
+                <div className="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
+                    <h3 className="font-bold text-lg text-gray-800 flex items-center">
+                        <Copy className="w-5 h-5 mr-2 text-blue-900"/>
+                        提出用レポートプレビュー
+                    </h3>
+                    <button onClick={onClose} className="text-gray-500 hover:text-gray-800 transition p-1 hover:bg-gray-200 rounded">
+                        <X size={24} />
+                    </button>
+                </div>
+                <div className="p-0 overflow-hidden flex-1 relative bg-gray-50">
+                     <textarea 
+                        readOnly
+                        className="w-full h-full p-6 font-mono text-sm leading-relaxed resize-none focus:outline-none text-gray-800 bg-white"
+                        value={reportText}
+                        onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                    />
+                </div>
+                <div className="p-4 border-t flex justify-end bg-white rounded-b-lg gap-3">
+                    <span className="text-xs text-gray-500 self-center mr-auto">※テキストを選択してコピー、または右のボタンを使用</span>
+                    <button 
+                        onClick={onClose} 
+                        className="px-5 py-2 rounded text-gray-600 hover:bg-gray-100 transition font-bold"
+                    >
+                        閉じる
+                    </button>
+                </div>
             </div>
-            <div className="p-0 overflow-hidden flex-1 relative bg-black/40">
-              <textarea 
-                readOnly
-                className="w-full h-full p-8 font-mono text-sm leading-relaxed resize-none focus:outline-none text-ff-sky bg-transparent border-none custom-scrollbar"
-                value={generateReport()}
-                onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-              />
-            </div>
-            <div className="p-6 border-t border-ff-silver/20 flex justify-end bg-ff-blue-top/10 gap-4">
-              <button 
-                onClick={() => setIsPreviewOpen(false)} 
-                className="ff-button !px-8 !py-3 text-sm group"
-              >
-                <span className="ff-cursor !-left-4"></span>
-                閉じる
-              </button>
-            </div>
-          </div>
         </div>
-      )}
-    </div>
-  );
+    );
+};
+
+export const ActionPlan: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const { 
+        formData, 
+        updateField, 
+        resetForm, 
+        manualSave,
+        saveStatus,
+        generateReport, 
+        copyToClipboard, 
+        isCopied 
+    } = useActionPlan();
+
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+    return (
+        <div className="min-h-screen pb-32 bg-gray-100">
+            <header className="bg-blue-900 text-white p-4 shadow-md sticky top-0 z-40 no-print">
+                <div className="max-w-5xl mx-auto flex justify-between items-center">
+                    <div>
+                        <h1 className="text-lg font-bold leading-tight flex items-center gap-2">
+                            <span>【店長】行動目標評価</span>
+                            <span className="hidden md:inline bg-white/20 text-xs px-2 py-0.5 rounded">Action Plan Tool</span>
+                        </h1>
+                        <p className="text-xs opacity-80 mt-0.5">アクションプラン管理シート作成</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={onBack} className="text-xs flex items-center gap-1 bg-white hover:bg-gray-100 text-blue-900 px-3 py-1.5 rounded transition font-bold">
+                            戻る
+                        </button>
+                        <button 
+                            onClick={manualSave} 
+                            className={`text-xs flex items-center gap-1 px-3 py-1.5 rounded border transition font-bold ${
+                                saveStatus === 'saved' 
+                                    ? 'bg-green-600 border-green-500 text-white' 
+                                    : 'bg-white/10 hover:bg-white/20 border-white/30 text-white'
+                            }`}
+                        >
+                            <Save size={14} />
+                            {saveStatus === 'saved' ? '保存完了' : '一時保存'}
+                        </button>
+                        <button 
+                            onClick={resetForm} 
+                            className="text-xs flex items-center gap-1 bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded border border-gray-600 transition"
+                        >
+                            <Trash2 size={14} />
+                            リセット
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main className="max-w-5xl mx-auto p-4 space-y-6 mt-4">
+                <GuideSection />
+
+                <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg border-t-8 border-blue-900 print:shadow-none print:border-none print:p-0">
+                    
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b-2 border-gray-100 pb-6 gap-4">
+                        <h2 className="text-2xl font-bold text-blue-900">
+                            【店長】行動目標評価<br/>
+                            <span className="text-lg text-gray-500 font-normal">アクションプラン管理シート</span>
+                        </h2>
+                        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                            <div className="flex-1 md:w-56">
+                                <label className="block text-xs font-bold text-gray-500 mb-1">担当店舗</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.storeName}
+                                    onChange={(e) => updateField('storeName', e.target.value)}
+                                    placeholder="例：横浜店" 
+                                    className="w-full p-2.5 border border-gray-300 rounded focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none transition bg-gray-50"
+                                />
+                            </div>
+                            <div className="flex-1 md:w-56">
+                                <label className="block text-xs font-bold text-gray-500 mb-1">氏名</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.managerName}
+                                    onChange={(e) => updateField('managerName', e.target.value)}
+                                    placeholder="例：山田 太郎" 
+                                    className="w-full p-2.5 border border-gray-300 rounded focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none transition bg-gray-50"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <section className="mb-10">
+                        <div className="mb-4">
+                            <div className="flex items-center mb-2">
+                                <h3 className="text-lg font-bold text-gray-800 border-l-4 border-blue-900 pl-3">ビジョン共有</h3>
+                                <div className="ml-3 text-xs bg-red-600 text-white px-2 py-0.5 rounded font-bold shadow-sm">
+                                    SMARTの法則
+                                </div>
+                            </div>
+                            <div className="bg-blue-50 text-xs text-blue-900 p-3 rounded border border-blue-100 leading-relaxed no-print">
+                                ブロック全体のビジョンや定量的・定性的な目標に基づいて、店舗目標を記載してください。
+                                また、店長の職務定義や重要業績評価の項目を目標に掲げることを推奨しています。
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                                <div className="md:col-span-2">
+                                    <label className="text-sm font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded block text-center md:text-right">ブロックビジョン</label>
+                                </div>
+                                <div className="md:col-span-10">
+                                    <input 
+                                        type="text" 
+                                        value={formData.visionBlock}
+                                        onChange={(e) => updateField('visionBlock', e.target.value)}
+                                        className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-900 focus:outline-none transition" 
+                                        placeholder="ブロック全体のビジョンを入力"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                                <div className="md:col-span-2">
+                                    <label className="text-sm font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded block text-center md:text-right">エリアビジョン</label>
+                                </div>
+                                <div className="md:col-span-10">
+                                    <input 
+                                        type="text" 
+                                        value={formData.visionArea}
+                                        onChange={(e) => updateField('visionArea', e.target.value)}
+                                        className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-900 focus:outline-none transition"
+                                        placeholder="エリアのビジョンや目標を入力"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                                <div className="md:col-span-2">
+                                    <label className="text-sm font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded block text-center md:text-right">店舗ビジョン</label>
+                                </div>
+                                <div className="md:col-span-10">
+                                    <input 
+                                        type="text" 
+                                        value={formData.visionShop}
+                                        onChange={(e) => updateField('visionShop', e.target.value)}
+                                        className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-900 focus:outline-none transition font-bold text-gray-800" 
+                                        placeholder="店舗のビジョンや目標を入力"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="ml-0 md:ml-[16.6%] bg-gray-50 p-2 rounded border border-gray-200 text-xs text-gray-500 flex gap-4 no-print">
+                                <div>
+                                    <span className="font-bold text-green-700 mr-1">● 定量的</span>
+                                    数値や数量として捉えること
+                                </div>
+                                <div>
+                                    <span className="font-bold text-teal-600 mr-1">● 定性的</span>
+                                    あり方や状態で捉えること
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="mb-10">
+                        <h3 className="text-lg font-bold text-gray-800 border-l-4 border-blue-900 pl-3 mb-4">現状分析・課題</h3>
+                        
+                        <div className="grid grid-cols-1 gap-6">
+                            <div className="bg-white">
+                                <label className="flex items-center text-sm font-bold text-gray-700 mb-2">
+                                    <span className="bg-gray-200 w-6 h-6 flex items-center justify-center rounded-full mr-2 text-xs">1</span>
+                                    現状分析
+                                </label>
+                                <textarea 
+                                    rows={4} 
+                                    value={formData.currentAnalysis}
+                                    onChange={(e) => updateField('currentAnalysis', e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-900 focus:outline-none transition bg-gray-50/50" 
+                                    placeholder="ビジョンや目標と比べて、現在の状態とどの様に差があるか。店舗の状態として捉えていることなどを記載してください。"
+                                />
+                            </div>
+
+                            <div className="bg-white">
+                                <label className="flex items-center text-sm font-bold text-gray-700 mb-2">
+                                    <span className="bg-gray-200 w-6 h-6 flex items-center justify-center rounded-full mr-2 text-xs">2</span>
+                                    課題
+                                </label>
+                                <textarea 
+                                    rows={4} 
+                                    value={formData.issues}
+                                    onChange={(e) => updateField('issues', e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-900 focus:outline-none transition bg-gray-50/50" 
+                                    placeholder="現状分析で挙げた、ビジョンや目標との「差」を埋める為に何が必要か。問題がある場合は何を解決する必要があるかを記載してください。"
+                                />
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="mb-10">
+                        <h3 className="text-lg font-bold text-gray-800 border-l-4 border-blue-900 pl-3 mb-4">達成ゴール (到達点)</h3>
+                        <textarea 
+                            rows={3} 
+                            value={formData.goal}
+                            onChange={(e) => updateField('goal', e.target.value)}
+                            className="w-full p-4 border-2 border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-blue-900 focus:outline-none font-bold text-gray-800 bg-white shadow-sm" 
+                            placeholder="店舗目標を達成したと言える具体的な到達基準を記載してください。"
+                        />
+                    </section>
+
+                    <section className="mb-10">
+                        <div className="mb-4">
+                            <div className="flex flex-wrap justify-between items-end mb-2">
+                                <h3 className="text-lg font-bold text-gray-800 border-l-4 border-blue-900 pl-3">課題解決・ゴール達成に向けたアクションプラン</h3>
+                                <div className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded shrink-0 ml-2 mt-1 md:mt-0 no-print">
+                                    <span className="font-bold">Q = クォーター</span> (3ヶ月毎にした期間)
+                                </div>
+                            </div>
+                            <div className="bg-blue-50 text-xs text-blue-900 p-3 rounded border border-blue-100 leading-relaxed no-print">
+                                店舗目標・達成ゴールに向けて第1Q～第4Qの各期間で具体的にどのような取り組みを行うか記載してください。
+                                各Qが終わったタイミングで取り組みに対しての振り返りを行い、必要な場合は軌道修正をしてください。
+                            </div>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                            <div className="grid grid-cols-12 bg-gray-100 border-b border-gray-200 text-sm font-bold text-gray-700">
+                                <div className="col-span-3 md:col-span-2 p-3 text-center border-r border-gray-200 flex items-center justify-center">期間</div>
+                                <div className="col-span-9 md:col-span-10 p-3 text-center">達成に向けた具体的な取組み</div>
+                            </div>
+
+                            <div className="grid grid-cols-12 border-b border-gray-200 group hover:bg-gray-50 transition">
+                                <div className="col-span-3 md:col-span-2 p-3 text-center border-r border-gray-200 bg-gray-50 flex flex-col justify-center items-center">
+                                    <span className="font-bold text-blue-900 text-lg">第1Q</span>
+                                    <span className="text-xs text-gray-500 font-bold">7~9月</span>
+                                </div>
+                                <div className="col-span-9 md:col-span-10 p-3">
+                                    <textarea 
+                                        rows={4} 
+                                        value={formData.planQ1}
+                                        onChange={(e) => updateField('planQ1', e.target.value)}
+                                        className="w-full p-2 border border-gray-200 rounded focus:ring-1 focus:ring-blue-900 focus:border-blue-900 focus:outline-none transition bg-white text-sm" 
+                                        placeholder="具体的な取り組みを記載してください。"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-12 border-b border-gray-200 group hover:bg-gray-50 transition">
+                                <div className="col-span-3 md:col-span-2 p-3 text-center border-r border-gray-200 bg-gray-50 flex flex-col justify-center items-center">
+                                    <span className="font-bold text-blue-900 text-lg">第2Q</span>
+                                    <span className="text-xs text-gray-500 font-bold">10~12月</span>
+                                </div>
+                                <div className="col-span-9 md:col-span-10 p-3">
+                                    <textarea 
+                                        rows={4} 
+                                        value={formData.planQ2}
+                                        onChange={(e) => updateField('planQ2', e.target.value)}
+                                        className="w-full p-2 border border-gray-200 rounded focus:ring-1 focus:ring-blue-900 focus:border-blue-900 focus:outline-none transition bg-white text-sm" 
+                                        placeholder="具体的な取り組みを記載してください。"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-12 border-b border-gray-200 group hover:bg-gray-50 transition">
+                                <div className="col-span-3 md:col-span-2 p-3 text-center border-r border-gray-200 bg-gray-50 flex flex-col justify-center items-center">
+                                    <span className="font-bold text-blue-900 text-lg">第3Q</span>
+                                    <span className="text-xs text-gray-500 font-bold">1~3月</span>
+                                </div>
+                                <div className="col-span-9 md:col-span-10 p-3">
+                                    <textarea 
+                                        rows={4} 
+                                        value={formData.planQ3}
+                                        onChange={(e) => updateField('planQ3', e.target.value)}
+                                        className="w-full p-2 border border-gray-200 rounded focus:ring-1 focus:ring-blue-900 focus:border-blue-900 focus:outline-none transition bg-white text-sm"
+                                        placeholder="具体的な取り組みを記載してください。"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-12 group hover:bg-gray-50 transition">
+                                <div className="col-span-3 md:col-span-2 p-3 text-center border-r border-gray-200 bg-gray-50 flex flex-col justify-center items-center">
+                                    <span className="font-bold text-blue-900 text-lg">第4Q</span>
+                                    <span className="text-xs text-gray-500 font-bold">4~6月</span>
+                                </div>
+                                <div className="col-span-9 md:col-span-10 p-3">
+                                    <textarea 
+                                        rows={4} 
+                                        value={formData.planQ4}
+                                        onChange={(e) => updateField('planQ4', e.target.value)}
+                                        className="w-full p-2 border border-gray-200 rounded focus:ring-1 focus:ring-blue-900 focus:border-blue-900 focus:outline-none transition bg-white text-sm"
+                                        placeholder="具体的な取り組みを記載してください。"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <div className="mb-4">
+                            <h3 className="text-lg font-bold text-gray-800 border-l-4 border-blue-900 pl-3">最終結果</h3>
+                            <p className="text-xs text-gray-500 mt-1 pl-3">最終的な結果がどうなったか、何を達成できたかを期末に記載してください。</p>
+                        </div>
+                        
+                        <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-600 mb-1">成果 1</label>
+                                <textarea 
+                                    rows={2} 
+                                    value={formData.finalResult1}
+                                    onChange={(e) => updateField('finalResult1', e.target.value)}
+                                    className="w-full p-3 border rounded focus:ring-1 focus:ring-blue-900 focus:border-blue-900 focus:outline-none transition bg-white" 
+                                    placeholder="成果内容を記載"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-600 mb-1">成果 2</label>
+                                <textarea 
+                                    rows={2} 
+                                    value={formData.finalResult2}
+                                    onChange={(e) => updateField('finalResult2', e.target.value)}
+                                    className="w-full p-3 border rounded focus:ring-1 focus:ring-blue-900 focus:border-blue-900 focus:outline-none transition bg-white" 
+                                    placeholder="成果内容を記載"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-600 mb-1">成果 3</label>
+                                <textarea 
+                                    rows={2} 
+                                    value={formData.finalResult3}
+                                    onChange={(e) => updateField('finalResult3', e.target.value)}
+                                    className="w-full p-3 border rounded focus:ring-1 focus:ring-blue-900 focus:border-blue-900 focus:outline-none transition bg-white" 
+                                    placeholder="成果内容を記載"
+                                />
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <footer className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg z-50 no-print">
+                <div className="max-w-5xl mx-auto flex gap-3">
+                    <button 
+                        onClick={() => setIsPreviewOpen(true)} 
+                        className="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-bold py-3.5 rounded-lg transition text-center shadow-sm border border-gray-300 flex items-center justify-center gap-2"
+                    >
+                        <BookOpen size={20} className="text-gray-500"/>
+                        プレビュー
+                    </button>
+                    <button 
+                        onClick={copyToClipboard} 
+                        className={`flex-[2] text-white font-bold py-3.5 rounded-lg shadow-lg transition flex justify-center items-center gap-2 ${
+                            isCopied ? 'bg-green-600' : 'bg-red-600 hover:bg-red-700'
+                        }`}
+                    >
+                        {isCopied ? (
+                            <>
+                                <Check className="w-5 h-5" />
+                                コピー完了！
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="w-5 h-5" />
+                                レポートをコピーする
+                            </>
+                        )}
+                    </button>
+                </div>
+            </footer>
+
+            <PreviewModal 
+                isOpen={isPreviewOpen} 
+                onClose={() => setIsPreviewOpen(false)} 
+                reportText={generateReport()} 
+            />
+        </div>
+    );
 };

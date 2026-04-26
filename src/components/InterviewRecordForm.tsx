@@ -79,8 +79,8 @@ ${formData.impression}`;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col animate-in fade-in duration-300">
-      <header className="bg-[#00205b] text-white p-4 shadow-md sticky top-0 z-40">
+    <div className="min-h-[100dvh] gpu-accelerate bg-gray-50 flex flex-col animate-in fade-in duration-300">
+      <header className="bg-[#00205b] text-white p-4 shadow-md sticky top-12 z-40">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-full transition-colors">

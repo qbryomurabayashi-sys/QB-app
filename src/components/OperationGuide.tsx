@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, HelpCircle, BookOpen, Printer, Save, Database, Lock, Users, Zap } from 'lucide-react';
+import { ArrowLeft, HelpCircle, BookOpen, Printer, Save, Lock, Zap } from 'lucide-react';
 
 interface GuideSection {
   title: string;
@@ -9,48 +9,48 @@ interface GuideSection {
 
 const SECTIONS: GuideSection[] = [
   {
-    title: 'CORE_OPERATIONS',
-    icon: <BookOpen className="text-terminal-orange" size={24} />,
+    title: '基本操作',
+    icon: <BookOpen className="text-blue-600" size={20} />,
     content: [
-      'INITIALIZE_NEW_EVALUATION_VIA_TOP_PAGE_COMMAND.',
-      'SELECT_EXISTING_SUBJECT_TO_RESUME_OR_OVERWRITE_LOGS.',
-      'SWITCH_BETWEEN_CATEGORIES (REL, CS, TECH, ETC.)_VIA_TAB_INTERFACE.'
+      '新規評価の作成：トップページのボタンから新しく記録を開始します。',
+      '既存データの編集：一覧からスタッフを選択し、履歴または再開ボタンで編集に入ります。',
+      'カテゴリー切替：上部のタブ（関係性、接客、技術など）で評価項目を切り替えます。'
     ]
   },
   {
-    title: 'DATA_SYNC_&_RECOVERY',
-    icon: <Save className="text-terminal-green" size={24} />,
+    title: 'データの保存と復元',
+    icon: <Save className="text-blue-600" size={20} />,
     content: [
-      'AUTO_SYNC_IS_ACTIVE. MANUAL_SAVE_PROTOCOL_AVAILABLE.',
-      'USE_BACKUP_PROTOCOL_TO_EXPORT_ALL_DATA_AS_JSON_FILE.',
-      'RESTORE_PROTOCOL_ALLOWS_DATA_RECOVERY_FROM_EXTERNAL_JSON.'
+      '自動保存：入力内容は自動的にブラウザ内に保存されます。一時保存ボタンで明示的に保存も可能です。',
+      'バックアップ：設定メニューから全データをJSONファイルとしてエクスポートできます。',
+      'データの復元：エクスポートしたJSONファイルを読み込むことでデータを一括復元できます。'
     ]
   },
   {
-    title: 'COMMANDER_DATA_LOCK (AM_ONLY)',
-    icon: <Lock className="text-terminal-red" size={24} />,
+    title: '店長評価のロック',
+    icon: <Lock className="text-blue-600" size={20} />,
     content: [
-      'COMMANDER_CATEGORY_IS_ENCRYPTED_VIA_ACCESS_KEY.',
-      'PREVENTS_UNAUTHORIZED_ACCESS_OR_DATA_CORRUPTION.',
-      'AM_MUST_INPUT_ACCESS_KEY_TO_DECRYPT_COMMANDER_METRICS.'
+      '店長カテゴリーの閲覧にはパスワード認証が必要です。',
+      '第三者による意図しない店長評価データの閲覧を防ぎます。',
+      'パスワードは共通のアクセスキーを用いて解除してください。'
     ]
   },
   {
-    title: 'OUTPUT_PROTOCOLS',
-    icon: <Printer className="text-terminal-orange" size={24} />,
+    title: '出力と印刷',
+    icon: <Printer className="text-blue-600" size={20} />,
     content: [
-      'GENERATE_A4_FEEDBACK_SHEET_VIA_PRINT_COMMAND.',
-      'BATCH_PRINT_PROTOCOL_SENDS_ALL_UNIT_DATA_TO_OUTPUT_BUFFER.',
-      'EXPORT_CSV_FOR_EXTERNAL_DATA_ANALYSIS_&_ARCHIVING.'
+      'フィードバックシート：A4サイズに最適化された評価シートを印刷できます。',
+      '一括印刷：登録されている全スタッフの評価データを一括でプリンターへ送信可能です。',
+      'CSV出力：エクセル等で編集可能なCSV形式で評価データをダウンロードできます。'
     ]
   },
   {
-    title: 'ACTION_PLAN_MODULE',
-    icon: <Zap className="text-terminal-orange" size={24} />,
+    title: '個別データの共有',
+    icon: <Zap className="text-green-600" size={20} />,
     content: [
-      'INTEGRATED_STRATEGIC_PLANNING_TOOL_FOR_COMMANDERS.',
-      'ESTABLISH_GOALS_AT_CYCLE_START_&_TRACK_QUARTERLY.',
-      'COPY_FINAL_REPORT_TO_CLIPBOARD_FOR_HQ_TRANSMISSION.'
+      '共有コードの発行：スタッフメニューから「共有コードを発行」を選択すると、そのスタッフ限定のデータを書き出せます。',
+      '共有コードの読込：トップ画面右上のメニューから「共有コードから読込」を選択します。',
+      'ファイル共有：JSONファイルを直接送受信するか、コードをコピー＆ペーストして共有可能です。'
     ]
   }
 ];
@@ -61,41 +61,39 @@ interface OperationGuideProps {
 
 export const OperationGuide: React.FC<OperationGuideProps> = ({ onBack }) => {
   return (
-    <div className="min-h-screen bg-black flex flex-col font-mono relative overflow-hidden">
-      <div className="grain pointer-events-none"></div>
-      
-      <header className="bg-terminal-rust text-terminal-orange p-4 sticky top-0 z-40 border-b-2 border-terminal-orange/30">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <button onClick={onBack} className="p-2 hover:bg-terminal-orange hover:text-black transition-colors">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <header className="bg-white border-b sticky top-0 z-40 p-4">
+        <div className="max-w-3xl mx-auto flex items-center gap-4">
+          <button onClick={onBack} className="p-2 text-gray-500 hover:text-blue-600 transition-colors">
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-bold uppercase tracking-widest">OPERATION_MANUAL_V2.300</h1>
+          <h1 className="text-xl font-bold text-gray-800">操作マニュアル</h1>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto p-4 sm:p-6 flex-grow w-full">
-        <div className="bg-terminal-panel/10 border border-terminal-rust/30 p-4 mb-8 flex items-start gap-3">
-          <HelpCircle className="text-terminal-orange shrink-0 mt-1" size={20} />
+      <main className="max-w-3xl mx-auto p-6 sm:p-8 flex-grow w-full">
+        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-start gap-3 mb-8">
+          <HelpCircle className="text-blue-600 shrink-0 mt-0.5" size={20} />
           <div>
-            <h2 className="font-bold text-terminal-orange mb-1 uppercase tracking-widest text-sm">SYSTEM_SUPPORT</h2>
-            <p className="text-[10px] text-terminal-green/80 leading-relaxed uppercase">
-              THIS_OS_INTEGRATES_STAFF_EVALUATION_&_COMMANDER_STRATEGY_PROTOCOLS.
-              PLEASE_REVIEW_THE_FOLLOWING_MODULES_FOR_OPTIMAL_SYNC.
+            <h2 className="font-bold text-blue-800 text-sm mb-1">システム概要</h2>
+            <p className="text-xs text-blue-700 leading-relaxed">
+              このツールは、スタッフの定期評価および管理者（店長）の店長アクションプランを効率的に管理するためのアプリケーションです。
+              ブラウザにデータが保存されるため、オフラインでも利用可能ですが、データのバックアップを定期的に行うことを推奨します。
             </p>
           </div>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           {SECTIONS.map((section, idx) => (
-            <section key={idx} className="terminal-window p-6">
-              <div className="flex items-center gap-3 mb-4 border-b border-terminal-rust/30 pb-2">
+            <section key={idx} className="bg-white border rounded-xl overflow-hidden shadow-sm">
+              <div className="p-4 bg-gray-50 flex items-center gap-3 border-b">
                 {section.icon}
-                <h3 className="text-sm font-bold text-terminal-orange uppercase tracking-widest">{section.title}</h3>
+                <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
               </div>
-              <ul className="space-y-3">
+              <ul className="p-4 space-y-3">
                 {section.content.map((text, tIdx) => (
-                  <li key={tIdx} className="flex items-start gap-3 text-[10px] text-terminal-green/80 leading-relaxed uppercase">
-                    <span className="w-5 h-5 bg-terminal-panel/20 text-terminal-rust border border-terminal-rust/30 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                  <li key={tIdx} className="flex items-start gap-3 text-xs text-gray-600 leading-relaxed">
+                    <span className="w-5 h-5 bg-blue-100 text-blue-700 font-bold rounded flex items-center justify-center text-[10px] shrink-0 mt-0.5">
                       {tIdx + 1}
                     </span>
                     {text}
@@ -106,12 +104,12 @@ export const OperationGuide: React.FC<OperationGuideProps> = ({ onBack }) => {
           ))}
         </div>
 
-        <div className="mt-12 p-6 bg-terminal-panel/10 border border-terminal-rust/30 text-terminal-rust text-center">
-          <h3 className="font-bold mb-2 uppercase tracking-widest text-xs">DATA_INTEGRITY_WARNING</h3>
-          <p className="text-[10px] text-terminal-rust/70 leading-relaxed uppercase">
-            DATA_IS_STORED_IN_LOCAL_STORAGE_BUFFER.<br />
-            CLEARING_BROWSER_CACHE_WILL_PURGE_ALL_LOGS.<br />
-            REGULAR_BACKUP_PROTOCOLS_ARE_MANDATORY.
+        <div className="mt-12 p-6 bg-red-50 border border-red-100 rounded-xl text-center">
+          <h3 className="font-bold text-red-800 mb-2 text-sm uppercase tracking-tight">⚠️ データの取り扱いに関する注意</h3>
+          <p className="text-[10px] text-red-700 leading-relaxed font-bold">
+            データはブラウザの「ローカルストレージ」に保存されています。<br />
+            ブラウザの「キャッシュ削除」を行うとすべてのデータが消去されます。<br />
+            定期的にバックアップファイル（JSON）を出力し、大切に保管してください。
           </p>
         </div>
       </main>

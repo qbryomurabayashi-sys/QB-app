@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Store, User, Plus, History, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Store, User, Plus, History, ChevronRight, ArrowLeft, Share2 } from 'lucide-react';
 import { StaffSummary } from '../types';
 
 interface MenuPageProps {
@@ -8,79 +8,76 @@ interface MenuPageProps {
   onResume: () => void;
   onNew: () => void;
   onHistory: () => void;
+  onExport: () => void;
   onBack: () => void;
 }
 
-export const MenuPage: React.FC<MenuPageProps> = ({ staff, onResume, onNew, onHistory, onBack }) => {
+export const MenuPage: React.FC<MenuPageProps> = ({ staff, onResume, onNew, onHistory, onExport, onBack }) => {
   if (!staff) return null;
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4 font-serif relative overflow-hidden">
-      {/* Mist Background */}
-      <div className="mist-container">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="mist-particle" style={{ width: '400px', height: '400px', left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${i * 3}s` }} />
-        ))}
-      </div>
-      
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="ff-window max-w-md w-full overflow-hidden shadow-2xl z-10"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="bg-white max-w-md w-full rounded-2xl shadow-xl overflow-hidden"
       >
-        <div className="bg-gradient-to-b from-blue-800 to-black p-10 text-center relative border-b-2 border-ff-silver/30">
-          <button onClick={onBack} className="absolute left-6 top-6 text-ff-silver hover:text-white p-2 transition-colors group">
-            <span className="ff-cursor"></span>
-            <ArrowLeft size={32} />
+        <div className="bg-blue-900 p-8 text-center text-white relative">
+          <button onClick={onBack} className="absolute left-4 top-4 hover:bg-blue-800 p-2 rounded-lg transition-colors">
+            <ArrowLeft size={24} />
           </button>
           
-          <div className="mt-6">
-            <div className="ff-avatar-frame inline-block mb-6">
-              <div className="w-24 h-24 rounded-full bg-blue-900 flex items-center justify-center text-ff-gold text-4xl font-display font-bold">
-                {staff.name?.charAt(0) || '?'}
-              </div>
-            </div>
-            <h2 className="text-4xl font-display font-bold mb-3 uppercase tracking-[0.2em] text-white">{staff.name}</h2>
-            <p className="text-ff-gold text-lg flex items-center justify-center gap-3 uppercase tracking-widest italic">
-              <Store size={20} /> {staff.store}
-            </p>
+          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-white/30">
+            <User size={40} className="text-white" />
           </div>
+          <h2 className="text-2xl font-bold">{staff.name}</h2>
+          <p className="text-blue-200 text-sm flex items-center justify-center gap-1 mt-1 font-medium">
+            <Store size={14} /> {staff.store}
+          </p>
         </div>
 
-        <div className="p-10 space-y-8 bg-black/40 backdrop-blur-md">
-          <button onClick={onResume} className="w-full ff-button !p-6 flex items-center gap-8 group relative">
-            <span className="ff-cursor"></span>
-            <div className="bg-ff-gold/20 text-ff-gold p-4 rounded-full border border-ff-gold/30">
-              <User size={36} />
+        <div className="p-6 space-y-4">
+          <button onClick={onResume} className="w-full flex items-center gap-4 p-4 hover:bg-blue-50 border border-gray-100 rounded-xl transition-all group active:scale-98">
+            <div className="bg-blue-100 text-blue-600 p-3 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <User size={24} />
             </div>
             <div className="text-left">
-              <h3 className="font-display font-bold text-xl uppercase tracking-widest text-white">記録を再開</h3>
-              <p className="text-xs text-ff-silver/60 italic uppercase">現在の旅を続けます</p>
+              <h3 className="font-bold text-gray-800">評価を再開する</h3>
+              <p className="text-xs text-gray-500">保存された評価データを編集します</p>
             </div>
-            <ChevronRight className="ml-auto text-ff-gold" />
+            <ChevronRight className="ml-auto text-gray-300" />
           </button>
 
-          <button onClick={onNew} className="w-full ff-button !p-6 flex items-center gap-8 group relative !from-emerald-900 !to-black !border-ff-emerald">
-            <span className="ff-cursor"></span>
-            <div className="bg-ff-emerald/20 text-ff-emerald p-4 rounded-full border border-ff-emerald/30">
-              <Plus size={36} />
+          <button onClick={onNew} className="w-full flex items-center gap-4 p-4 hover:bg-green-50 border border-gray-100 rounded-xl transition-all group active:scale-98">
+            <div className="bg-green-100 text-green-600 p-3 rounded-lg group-hover:bg-green-600 group-hover:text-white transition-colors">
+              <Plus size={24} />
             </div>
             <div className="text-left">
-              <h3 className="font-display font-bold text-xl uppercase tracking-widest text-ff-emerald">新規召喚</h3>
-              <p className="text-xs text-ff-emerald/60 italic uppercase">新しい冒険を始めます</p>
+              <h3 className="font-bold text-gray-800">新しく評価を作成</h3>
+              <p className="text-xs text-gray-500">新しい月の評価データを開始します</p>
             </div>
-            <ChevronRight className="ml-auto text-ff-emerald" />
+            <ChevronRight className="ml-auto text-gray-300" />
           </button>
 
-          <button onClick={onHistory} className="w-full ff-button !p-6 flex items-center gap-8 group relative !from-blue-950 !to-black">
-            <span className="ff-cursor"></span>
-            <div className="bg-ff-sky/20 text-ff-sky p-4 rounded-full border border-ff-sky/30">
-              <History size={36} />
+          <button onClick={onHistory} className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 border border-gray-100 rounded-xl transition-all group active:scale-98">
+            <div className="bg-gray-100 text-gray-600 p-3 rounded-lg group-hover:bg-gray-800 group-hover:text-white transition-colors">
+              <History size={24} />
             </div>
             <div className="text-left">
-              <h3 className="font-display font-bold text-xl uppercase tracking-widest text-ff-sky">過去の記録</h3>
-              <p className="text-xs text-ff-sky/60 italic uppercase">過去の伝説を振り返ります</p>
+              <h3 className="font-bold text-gray-800">履歴を確認する</h3>
+              <p className="text-xs text-gray-500">これまでの評価記録の一覧を表示します</p>
             </div>
-            <ChevronRight className="ml-auto text-ff-sky" />
+            <ChevronRight className="ml-auto text-gray-300" />
+          </button>
+
+          <button onClick={onExport} className="w-full flex items-center gap-4 p-4 hover:bg-blue-50 border border-dotted border-blue-200 rounded-xl transition-all group active:scale-98">
+            <div className="bg-blue-50 text-blue-500 p-3 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <Share2 size={24} />
+            </div>
+            <div className="text-left">
+              <h3 className="font-bold text-blue-600">共有コードを発行</h3>
+              <p className="text-xs text-gray-500">このスタッフのデータを他の評価者に送る</p>
+            </div>
+            <ChevronRight className="ml-auto text-blue-300" />
           </button>
         </div>
       </motion.div>

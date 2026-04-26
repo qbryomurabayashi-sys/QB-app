@@ -89,38 +89,38 @@ export const PrintChartSection: React.FC<PrintChartSectionProps> = ({
     });
   }, [items, comparisonItems]);
 
-  if (type === 'radar') {
+    if (type === 'radar') {
+      return (
+        <RadarChart width={400} height={250} cx="50%" cy="50%" outerRadius="60%" data={radarData}>
+          <PolarGrid stroke="#cbd5e1" strokeOpacity={0.5} />
+          <PolarAngleAxis dataKey="subject" tick={{ fill: '#334155', fontSize: 10, fontWeight: 'bold' }} />
+          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+          <Radar name="現在の評価" dataKey="A" stroke="#2563eb" strokeWidth={2} fill="#3b82f6" fillOpacity={0.2} isAnimationActive={false} />
+          {comparisonItems && <Radar name="過去の評価" dataKey="B" stroke="#94a3b8" strokeWidth={1} fill="#e2e8f0" fillOpacity={0.3} strokeDasharray="3 3" isAnimationActive={false} />}
+        </RadarChart>
+      );
+    }
+  
+    if (type === 'manager-radar') {
+      return (
+        <RadarChart width={400} height={250} cx="50%" cy="50%" outerRadius="55%" data={managerRadarData}>
+          <PolarGrid stroke="#cbd5e1" strokeOpacity={0.5} />
+          <PolarAngleAxis dataKey="subject" tick={{ fill: '#334155', fontSize: 9, fontWeight: 'bold' }} />
+          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+          <Radar name="店長スキル" dataKey="A" stroke="#059669" strokeWidth={2} fill="#10b981" fillOpacity={0.2} isAnimationActive={false} />
+          {comparisonItems && <Radar name="過去のスキル" dataKey="B" stroke="#94a3b8" strokeWidth={1} fill="#e2e8f0" fillOpacity={0.3} strokeDasharray="3 3" isAnimationActive={false} />}
+        </RadarChart>
+      );
+    }
+  
     return (
-      <RadarChart width={400} height={250} cx="50%" cy="50%" outerRadius="60%" data={radarData}>
-        <PolarGrid stroke="#8B4513" strokeOpacity={0.2} />
-        <PolarAngleAxis dataKey="subject" tick={{ fill: '#4A3728', fontSize: 10, fontWeight: 'bold', fontFamily: 'Cinzel' }} />
-        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-        <Radar name="現在の伝説" dataKey="A" stroke="#228B22" strokeWidth={2} fill="#228B22" fillOpacity={0.15} isAnimationActive={false} />
-        {comparisonItems && <Radar name="過去の伝説" dataKey="B" stroke="#B22222" strokeWidth={1} fill="#B22222" fillOpacity={0.05} strokeDasharray="3 3" isAnimationActive={false} />}
-      </RadarChart>
+      <LineChart width={400} height={250} data={lineChartData} margin={{ top: 5, right: 15, bottom: 0, left: -10 }}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" strokeOpacity={0.5} />
+        <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#334155' }} axisLine={false} tickLine={false} interval={0} />
+        <YAxis tick={{ fontSize: 11, fill: '#334155' }} axisLine={false} tickLine={false} width={35} />
+        <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '0px' }} />
+        <Line type="stepAfter" dataKey="cuts" name="実績" stroke="#2563eb" strokeWidth={2} dot={{ r: 3, fill: '#2563eb' }} connectNulls isAnimationActive={false} />
+        <Line type="monotone" dataKey="goal" name="目標" stroke="#94a3b8" strokeDasharray="4 4" dot={false} strokeWidth={1} isAnimationActive={false} />
+      </LineChart>
     );
-  }
-
-  if (type === 'manager-radar') {
-    return (
-      <RadarChart width={400} height={250} cx="50%" cy="50%" outerRadius="55%" data={managerRadarData}>
-        <PolarGrid stroke="#8B4513" strokeOpacity={0.2} />
-        <PolarAngleAxis dataKey="subject" tick={{ fill: '#4A3728', fontSize: 9, fontWeight: 'bold', fontFamily: 'Cinzel' }} />
-        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-        <Radar name="指揮レベル" dataKey="A" stroke="#D4AF37" strokeWidth={2} fill="#D4AF37" fillOpacity={0.15} isAnimationActive={false} />
-        {comparisonItems && <Radar name="過去の指揮" dataKey="B" stroke="#B22222" strokeWidth={1} fill="#B22222" fillOpacity={0.05} strokeDasharray="3 3" isAnimationActive={false} />}
-      </RadarChart>
-    );
-  }
-
-  return (
-    <LineChart width={400} height={250} data={lineChartData} margin={{ top: 5, right: 15, bottom: 0, left: -10 }}>
-      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#8B4513" strokeOpacity={0.1} />
-      <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#4A3728', fontFamily: 'Cinzel' }} axisLine={false} tickLine={false} interval={0} />
-      <YAxis tick={{ fontSize: 11, fill: '#4A3728', fontFamily: 'Cinzel' }} axisLine={false} tickLine={false} width={35} />
-      <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '0px', fontFamily: 'Cinzel' }} />
-      <Line type="stepAfter" dataKey="cuts" name="実績の記録" stroke="#228B22" strokeWidth={2} dot={{ r: 3, fill: '#228B22' }} connectNulls isAnimationActive={false} />
-      <Line type="monotone" dataKey="goal" name="運命の目標" stroke="#D4AF37" strokeDasharray="4 4" dot={false} strokeWidth={1} isAnimationActive={false} />
-    </LineChart>
-  );
 };

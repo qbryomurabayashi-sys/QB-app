@@ -91,75 +91,61 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
   const hasManagerItems = React.useMemo(() => items.some(i => i.category === '店長' && i.score !== null), [items]);
 
   return (
-    <div className={`grid grid-cols-1 ${hasManagerItems ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-10 w-full print-break-inside-avoid font-serif relative z-10`}>
-      <motion.div 
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="ff-window !p-6 h-[450px] relative overflow-hidden group"
-      >
-        <h3 className="absolute top-6 left-8 text-sm font-display font-bold text-ff-gold uppercase tracking-[0.2em] z-20">
-          <span className="animate-pulse mr-2">💠</span> 英雄の共鳴レーダー
+    <div className={`grid grid-cols-1 ${hasManagerItems ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-8 w-full print-break-inside-avoid font-sans`}>
+      <div className="bg-white border rounded-xl p-6 h-[400px] shadow-sm flex flex-col relative">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-tight mb-4">
+          バランスチャート
         </h3>
-        <div className="h-full pt-10">
+        <div className="flex-grow">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
-              <PolarGrid stroke="rgba(224, 224, 224, 0.1)" />
-              <PolarAngleAxis dataKey="subject" tick={{ fill: '#E0E0E0', fontSize: 12, fontWeight: 'bold', fontFamily: 'Cinzel' }} />
+              <PolarGrid stroke="#f1f5f9" />
+              <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-              <Radar name="現在の伝説" dataKey="A" stroke="#50C878" strokeWidth={4} fill="#50C878" fillOpacity={0.3} />
-              {comparisonItems && <Radar name="過去の伝説" dataKey="B" stroke="#FF4444" strokeWidth={2} fill="#FF4444" fillOpacity={0.1} strokeDasharray="4 4" />}
-              <Legend wrapperStyle={{ fontSize: '12px', color: '#D4AF37', fontFamily: 'Cinzel', paddingTop: '15px' }} />
+              <Radar name="最新" dataKey="A" stroke="#2563eb" strokeWidth={2} fill="#2563eb" fillOpacity={0.15} />
+              {comparisonItems && <Radar name="比較用" dataKey="B" stroke="#f43f5e" strokeWidth={1} fill="#f43f5e" fillOpacity={0.05} strokeDasharray="4 4" />}
+              <Legend wrapperStyle={{ fontSize: '10px', color: '#64748b', fontWeight: 'bold', paddingTop: '10px' }} />
             </RadarChart>
           </ResponsiveContainer>
         </div>
-      </motion.div>
+      </div>
 
       {hasManagerItems && (
-        <motion.div 
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="ff-window !p-6 h-[450px] relative overflow-hidden group"
-        >
-          <h3 className="absolute top-6 left-8 text-sm font-display font-bold text-ff-gold uppercase tracking-[0.2em] z-20">
-            <span className="animate-pulse mr-2">💠</span> 指揮官の練度レーダー
+        <div className="bg-white border rounded-xl p-6 h-[400px] shadow-sm flex flex-col relative">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-tight mb-4">
+            店長スキル詳細
           </h3>
-          <div className="h-full pt-10">
+          <div className="flex-grow">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="60%" data={managerRadarData}>
-                <PolarGrid stroke="rgba(224, 224, 224, 0.1)" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#D4AF37', fontSize: 10, fontWeight: 'bold', fontFamily: 'Cinzel' }} />
+                <PolarGrid stroke="#f1f5f9" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#fb923c', fontSize: 9, fontWeight: 'bold' }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar name="指揮レベル" dataKey="A" stroke="#D4AF37" strokeWidth={4} fill="#D4AF37" fillOpacity={0.3} />
-                {comparisonItems && <Radar name="過去の指揮" dataKey="B" stroke="#FF4444" strokeWidth={2} fill="#FF4444" fillOpacity={0.1} strokeDasharray="4 4" />}
+                <Radar name="店長評価" dataKey="A" stroke="#f97316" strokeWidth={2} fill="#f97316" fillOpacity={0.15} />
+                {comparisonItems && <Radar name="過去" dataKey="B" stroke="#64748b" strokeWidth={1} fill="#64748b" fillOpacity={0.05} strokeDasharray="4 4" />}
               </RadarChart>
             </ResponsiveContainer>
           </div>
-        </motion.div>
+        </div>
       )}
 
-      <motion.div 
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="ff-window !p-6 h-[450px] relative overflow-hidden group"
-      >
-        <h3 className="absolute top-6 left-8 text-sm font-display font-bold text-ff-gold uppercase tracking-[0.2em] z-20">
-          <span className="animate-pulse mr-2">💠</span> 年代記の流転チャート
+      <div className="bg-white border rounded-xl p-6 h-[400px] shadow-sm flex flex-col relative">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-tight mb-4">
+          実績推移チャート
         </h3>
-        <div className="h-full pt-16 pr-6">
+        <div className="flex-grow pr-4">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={lineChartData} margin={{ top: 5, right: 15, bottom: 5, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(224, 224, 224, 0.1)" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#E0E0E0', fontFamily: 'Cinzel' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#E0E0E0', fontFamily: 'Cinzel' }} axisLine={false} tickLine={false} width={45} />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '15px', color: '#D4AF37', fontFamily: 'Cinzel' }} />
-              <Line type="stepAfter" dataKey="cuts" name="実績の記録" stroke="#50C878" strokeWidth={4} dot={{ r: 5, fill: '#50C878', strokeWidth: 0 }} connectNulls />
-              <Line type="monotone" dataKey="goal" name="運命の目標" stroke="#D4AF37" strokeDasharray="8 4" dot={false} strokeWidth={2} />
+            <LineChart data={lineChartData} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={40} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px', fontWeight: 'bold' }} />
+              <Line type="monotone" dataKey="cuts" name="月別実績" stroke="#2563eb" strokeWidth={3} dot={{ r: 4, fill: '#2563eb', strokeWidth: 0 }} connectNulls activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="goal" name="目標ライン" stroke="#cbd5e1" strokeDasharray="4 4" dot={false} strokeWidth={1} />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
