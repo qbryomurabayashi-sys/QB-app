@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Cpu, CheckCircle, AlertTriangle } from 'lucide-react';
-import { downloadGemmaModel } from '../services/aiService';
+import { downloadModel, AVAILABLE_MODELS, selectedModelId } from '../services/aiService';
 
 interface GemmaDownloadModalProps {
   isOpen: boolean;
@@ -14,37 +14,42 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
   const [progressText, setProgressText] = useState('初期化中...');
   const [status, setStatus] = useState<'idle' | 'downloading' | 'complete' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [modelId, setModelId] = useState(selectedModelId);
 
+  // Reset state when opened
   useEffect(() => {
-    let active = true;
-    if (isOpen && status === 'idle') {
-      setStatus('downloading');
+    if (isOpen) {
+      setStatus('idle');
       setProgress(0);
-      downloadGemmaModel((p, text) => {
-        if (active) {
-          setProgress(p);
-          if (text) setProgressText(text);
-        }
-      }).then(() => {
-        if (active) {
-          setStatus('complete');
-          setProgressText('完了しました');
-          setTimeout(() => {
-             onComplete();
-          }, 1500);
-        }
-      }).catch(err => {
-        console.error("Download error:", err);
-        if (active) {
-          setStatus('error');
-          setErrorMsg(err.message || 'お使いのブラウザはWebGPUに対応していないか、メモリが不足しています。');
-        }
-      });
+      setProgressText('初期化中...');
+      setErrorMsg('');
+      setModelId(selectedModelId);
     }
-    return () => { active = false; };
-  }, [isOpen, status, onComplete]);
+  }, [isOpen]);
+
+  const handleStartDownload = () => {
+    setStatus('downloading');
+    setProgress(0);
+    
+    downloadModel(modelId, (p, text) => {
+      setProgress(p);
+      if (text) setProgressText(text);
+    }).then(() => {
+      setStatus('complete');
+      setProgressText('完了しました');
+      setTimeout(() => {
+         onComplete();
+      }, 1500);
+    }).catch(err => {
+      console.error("Download error:", err);
+      setStatus('error');
+      setErrorMsg(err.message || 'お使いのブラウザはWebGPUに対応していないか、メモリが不足しています。');
+    });
+  };
 
   if (!isOpen) return null;
+
+  const currentModelInfo = AVAILABLE_MODELS.find(m => m.id === modelId);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -60,16 +65,38 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
           </div>
           
           <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Local AI Setup (Gemma 2)
+            Local AI Setup
           </h3>
-          <p className="text-sm text-gray-600 mb-6">
-            高性能な「Gemma 2」モデルをブラウザに連携します。(約1.6GB)<br/>
-            <span className="font-semibold text-blue-600">初回のみダウンロードが発生し、2回目以降はキャッシュから即座に起動します。</span>
+          <p className="text-sm text-gray-600 mb-4">
+            モデルをブラウザにダウンロードし、ローカルで実行します。<br/>
+            <span className="font-semibold text-blue-600">初回のみダウンロードが発生します。</span>
           </p>
 
-          {status !== 'error' ? (
+          {status === 'idle' && (
+            <div className="w-full text-left mb-6">
+              <label className="block text-xs font-semibold text-gray-500 mb-2">
+                使用するモデルを選択
+              </label>
+              <select 
+                value={modelId}
+                onChange={(e) => setModelId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+              >
+                {AVAILABLE_MODELS.map(model => (
+                  <option key={model.id} value={model.id}>
+                    {model.name} ({model.size})
+                  </option>
+                ))}
+              </select>
+              <div className="text-[10px] text-gray-400">
+                ※ スマホなどメモリが少ない端末では「軽量モデル」を推奨します。PC・タブレット等では「高性能モデル」も動作可能です。
+              </div>
+            </div>
+          )}
+
+          {(status === 'downloading' || status === 'complete') && (
             <>
-              <div className="w-full bg-gray-100 rounded-full h-2.5 mb-2 overflow-hidden">
+              <div className="w-full bg-gray-100 rounded-full h-2.5 mb-2 overflow-hidden mt-2">
                 <motion.div 
                   className="bg-blue-600 h-2.5 rounded-full" 
                   initial={{ width: 0 }}
@@ -86,25 +113,37 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
                 {progressText}
               </div>
             </>
-          ) : (
-             <div className="text-sm text-red-600 mb-6 w-full text-left bg-red-50 p-3 rounded-lg border border-red-100">
+          )} 
+          
+          {status === 'error' && (
+             <div className="text-sm text-red-600 mb-6 w-full text-left bg-red-50 p-3 rounded-lg border border-red-100 mt-2">
                エラーが発生しました。<br/>
                <span className="text-xs break-words">{errorMsg}</span><br/><br/>
-               <span className="text-xs text-gray-500">クラウドAI(Gemini)にフォールバックします。</span>
+               <span className="text-xs text-gray-500">クラウドAI(Gemini api)にフォールバックします。</span>
              </div>
           )}
           
           <div className="flex gap-3 w-full">
             <button 
               onClick={onCancel}
-              className="flex-1 py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+              className="flex-1 py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors text-sm"
             >
               閉じる
             </button>
+
+            {status === 'idle' && (
+              <button 
+                onClick={handleStartDownload}
+                className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-1"
+              >
+                <span>ダウンロード</span>
+              </button>
+            )}
+
             {(status === 'complete' || status === 'error') && (
               <button 
                 onClick={onComplete}
-                className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm"
               >
                 続ける
               </button>

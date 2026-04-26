@@ -15,51 +15,77 @@ export const setLocalAiReady = (ready: boolean) => {
   isLocalAiReadyFlag = ready;
 };
 
-// WebLLMのモデル名 (Gemma 2 2Bの軽量量子化モデル。WebLLMは初回ダウンロード後にブラウザのキャッシュに保存します)
-const SELECTED_MODEL = "gemma-2-2b-it-q4f16_1-MLC-1k"; 
+export const AVAILABLE_MODELS = [
+  { id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC', name: 'Llama 3.2 1B (スマホ推奨 / 軽量)', size: '約800MB' },
+  { id: 'gemma-2-2b-it-q4f16_1-MLC-1k', name: 'Gemma 2 2B (PC推奨 / 高性能)', size: '約1.6GB' }
+];
 
-// 進行状況を共有するためのコールバックリスト
-let progressCallbacks: ((report: { progress: number, text: string }) => void)[] = [];
+// 現在選択されているモデル（設定がない場合はデフォルトとして一番小さめのものを対象にしつつ、ダウンロードUIで選べるようにする）
+export let selectedModelId = AVAILABLE_MODELS[0].id;
+
+// 現在の初期化進捗を保持する
+let currentProgressReport: { progress: number, text: string } | null = null;
+const progressCallbacks: ((report: { progress: number, text: string }) => void)[] = [];
 
 // バックグラウンドでキャッシュをチェックし、存在すれば静かに初期化する
 const initAiBackground = async () => {
   try {
-    const isCached = await hasModelInCache(SELECTED_MODEL);
-    if (isCached && !webLLMEngine && !initEnginePromise) {
-      console.log("Model is cached. Initializing in background...");
-      initEnginePromise = CreateMLCEngine(SELECTED_MODEL, {
-        initProgressCallback: (report) => {
-          console.log("Background init progress:", report.text);
-          progressCallbacks.forEach(cb => cb(report));
-        }
-      });
-      webLLMEngine = await initEnginePromise;
-      isLocalAiReadyFlag = true;
-      console.log("Background init complete!");
+    for (const model of AVAILABLE_MODELS) {
+      const isCached = await hasModelInCache(model.id);
+      if (isCached && !webLLMEngine && !initEnginePromise) {
+        selectedModelId = model.id;
+        console.log(`Model ${model.id} is cached. Initializing in background...`);
+        initEnginePromise = CreateMLCEngine(selectedModelId, {
+          initProgressCallback: (report) => {
+            currentProgressReport = report;
+            console.log("Background init progress:", report.text);
+            progressCallbacks.forEach(cb => cb(report));
+          }
+        });
+        webLLMEngine = await initEnginePromise;
+        isLocalAiReadyFlag = true;
+        currentProgressReport = { progress: 1, text: "準備完了" };
+        console.log("Background init complete!");
+        break; // 最初に見つかったキャッシュ済みモデルをロード
+      }
     }
   } catch (error) {
     console.warn("Background init failed", error);
     initEnginePromise = null;
+    currentProgressReport = null;
   }
 };
 
 // モジュール読み込み時に実行
 initAiBackground();
 
-export const downloadGemmaModel = async (onProgress: (progress: number, text?: string) => void): Promise<void> => {
-  if (webLLMEngine) {
+export const downloadModel = async (modelId: string, onProgress: (progress: number, text?: string) => void): Promise<void> => {
+  if (webLLMEngine && selectedModelId === modelId) {
     onProgress(100, "準備完了");
     return;
   }
   
+  // 違うモデルがロードされている場合はリセット
+  if (webLLMEngine && selectedModelId !== modelId) {
+    webLLMEngine = null;
+    initEnginePromise = null;
+    isLocalAiReadyFlag = false;
+  }
+
+  selectedModelId = modelId;
+
   // 既に初期化中ならそれに乗っかる
   if (initEnginePromise) {
+    if (currentProgressReport) {
+      onProgress(Math.round(currentProgressReport.progress * 100), currentProgressReport.text);
+    }
     const cb = (report: { progress: number, text: string }) => {
       onProgress(Math.round(report.progress * 100), report.text);
     };
     progressCallbacks.push(cb);
     try {
       await initEnginePromise;
+      currentProgressReport = { progress: 1, text: "準備完了" };
       onProgress(100, "準備完了");
       isLocalAiReadyFlag = true;
       return;
@@ -67,12 +93,15 @@ export const downloadGemmaModel = async (onProgress: (progress: number, text?: s
        // エラー時はフォールスルーして再度試行
        initEnginePromise = null;
     } finally {
-      progressCallbacks = progressCallbacks.filter(c => c !== cb);
+      const idx = progressCallbacks.indexOf(cb);
+      if (idx > -1) {
+        progressCallbacks.splice(idx, 1);
+      }
     }
   }
   
   try {
-    initEnginePromise = CreateMLCEngine(SELECTED_MODEL, {
+    initEnginePromise = CreateMLCEngine(selectedModelId, {
       initProgressCallback: (report) => {
         onProgress(Math.round(report.progress * 100), report.text);
         progressCallbacks.forEach(cb => cb(report));
