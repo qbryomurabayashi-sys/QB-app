@@ -1,9 +1,10 @@
-import { CreateMLCEngine, MLCEngine, hasModelInCache } from "@mlc-ai/web-llm";
+import { CreateWebWorkerMLCEngine, MLCEngine, hasModelInCache } from "@mlc-ai/web-llm";
 import { GoogleGenAI } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
 let webLLMEngine: MLCEngine | null = null;
 let initEnginePromise: Promise<MLCEngine> | null = null;
+let aiWorker: Worker | null = null;
 
 export type AIPersona = 'normal' | 'strict' | 'mild' | 'logical';
 
@@ -38,7 +39,10 @@ const initAiBackground = async () => {
         selectedModelId = model.id;
         console.log(`Model ${model.id} is cached. Initializing in background...`);
         let lastBgProgressTime = 0;
-        initEnginePromise = CreateMLCEngine(selectedModelId, {
+        if (!aiWorker) {
+          aiWorker = new Worker(new URL('./aiWorker.ts', import.meta.url), { type: 'module' });
+        }
+        initEnginePromise = CreateWebWorkerMLCEngine(aiWorker, selectedModelId, {
           initProgressCallback: (report) => {
             const now = Date.now();
             if (now - lastBgProgressTime > 100 || report.progress === 1) {
@@ -76,6 +80,10 @@ export const downloadModel = async (modelId: string, onProgress: (progress: numb
   
   // 違うモデルがロードされている場合はリセット
   if (webLLMEngine && selectedModelId !== modelId) {
+    if (aiWorker) {
+      aiWorker.terminate();
+      aiWorker = null;
+    }
     webLLMEngine = null;
     initEnginePromise = null;
     isLocalAiReadyFlag = false;
@@ -112,10 +120,15 @@ export const downloadModel = async (modelId: string, onProgress: (progress: numb
   try {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     // モバイル端末でのOOM(メモリ不足)クラッシュを防ぐため、コンテキストウィンドウの上限を大幅に下げる
-    const chatOpts = isMobile ? { context_window_size: 512, sliding_window_size: 512 } : undefined;
+    const chatOpts = isMobile ? { context_window_size: 1024, sliding_window_size: -1 } : undefined;
 
     let lastProgressTime = 0;
-    initEnginePromise = CreateMLCEngine(selectedModelId, {
+    
+    if (!aiWorker) {
+      aiWorker = new Worker(new URL('./aiWorker.ts', import.meta.url), { type: 'module' });
+    }
+    
+    initEnginePromise = CreateWebWorkerMLCEngine(aiWorker, selectedModelId, {
       initProgressCallback: (report) => {
         const now = Date.now();
         // スマホなどでUIスレッドをブロックしクラッシュするのを防ぐため、プログレス更新の頻度を制限する
