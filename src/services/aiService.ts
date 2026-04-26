@@ -1,4 +1,4 @@
-import { CreateMLCEngine, MLCEngine } from "@mlc-ai/web-llm";
+import { CreateMLCEngine, MLCEngine, hasModelInCache } from "@mlc-ai/web-llm";
 import { GoogleGenAI } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
@@ -15,7 +15,29 @@ export const setLocalAiReady = (ready: boolean) => {
 };
 
 // WebLLMのモデル名 (Gemma 2 2Bの軽量量子化モデル。WebLLMは初回ダウンロード後にブラウザのキャッシュに保存します)
-const SELECTED_MODEL = "gemma-2-2b-it-q4f16_1-MLC"; 
+const SELECTED_MODEL = "gemma-2-2b-it-q4f16_1-MLC-1k"; 
+
+// バックグラウンドでキャッシュをチェックし、存在すれば静かに初期化する
+const initAiBackground = async () => {
+  try {
+    const isCached = await hasModelInCache(SELECTED_MODEL);
+    if (isCached && !webLLMEngine) {
+      console.log("Model is cached. Initializing in background...");
+      webLLMEngine = await CreateMLCEngine(SELECTED_MODEL, {
+        initProgressCallback: (report) => {
+          console.log("Background init progress:", report.text);
+        }
+      });
+      isLocalAiReadyFlag = true;
+      console.log("Background init complete!");
+    }
+  } catch (error) {
+    console.warn("Background init failed", error);
+  }
+};
+
+// モジュール読み込み時に実行
+initAiBackground();
 
 export const downloadGemmaModel = async (onProgress: (progress: number, text?: string) => void): Promise<void> => {
   if (webLLMEngine) {
@@ -37,6 +59,7 @@ export const downloadGemmaModel = async (onProgress: (progress: number, text?: s
     webLLMEngine = null;
     isLocalAiReadyFlag = false;
     console.error("WebLLM Error:", error);
+    onProgress(0, `エラーが発生しました: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 };
