@@ -1,60 +1,46 @@
+import { CreateMLCEngine } from "@mlc-ai/web-llm";
 import { GoogleGenAI } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
+let webLLMEngine: any = null;
 
 export type AIPersona = 'normal' | 'strict' | 'mild' | 'logical';
 
-let isGemmaDownloaded = false;
-let gemmaDownloadPromise: Promise<void> | null = null;
+let isLocalAiReadyFlag = false;
 
-export const isLocalAiReady = () => isGemmaDownloaded;
+export const isLocalAiReady = () => isLocalAiReadyFlag;
 
-export const downloadGemmaModel = (onProgress: (progress: number) => void): Promise<void> => {
-  if (isGemmaDownloaded) {
-    onProgress(100);
-    return Promise.resolve();
-  }
-  if (gemmaDownloadPromise) {
-    return gemmaDownloadPromise;
-  }
-
-  gemmaDownloadPromise = (async () => {
-    if ('ai' in window && 'languageModel' in (window as any).ai) {
-      try {
-        const capabilities = await (window as any).ai.languageModel.capabilities();
-        if (capabilities.available !== 'no') {
-          await (window as any).ai.languageModel.create({
-            monitor(m: any) {
-              m.addEventListener('downloadprogress', (e: any) => {
-                const p = Math.round((e.loaded / e.total) * 100);
-                onProgress(p);
-              });
-            }
-          });
-          isGemmaDownloaded = true;
-          onProgress(100);
-          return;
-        }
-      } catch (e) {
-        console.warn("Could not download native model", e);
-      }
-    }
-
-    // Simulate download of 2B model if window.ai is not available
-    for (let i = 0; i <= 100; i += Math.floor(Math.random() * 15) + 5) {
-      const p = Math.min(i, 100);
-      onProgress(p);
-      if (p === 100) break;
-      await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 100));
-    }
-    onProgress(100);
-    isGemmaDownloaded = true;
-  })();
-
-  return gemmaDownloadPromise;
+export const setLocalAiReady = (ready: boolean) => {
+  isLocalAiReadyFlag = ready;
 };
 
-// ローカルAI（シミュレーション・フォールバック）用の生成ロジック
+// WebLLMのモデル名 (QwenかGemma等を指定。スマホでも動きやすいように軽量モデル推奨だがGemmaの要望があるのでGemma-2bにする)
+const SELECTED_MODEL = "gemma-2b-it-q4f16_1-MLC"; // 軽量な量子化Gemma 2B
+
+export const downloadGemmaModel = async (onProgress: (progress: number) => void): Promise<void> => {
+  if (webLLMEngine) {
+    onProgress(100);
+    return;
+  }
+  
+  try {
+    webLLMEngine = await CreateMLCEngine(
+      SELECTED_MODEL,
+      { 
+        initProgressCallback: (info) => {
+          // info.progress is 0 to 1
+          onProgress(Math.round(info.progress * 100));
+        } 
+      }
+    );
+    isLocalAiReadyFlag = true;
+  } catch (error) {
+    console.error("WebLLM Error:", error);
+    throw error;
+  }
+};
+
+// ... inside generateEvaluationComment ...
 const generateMockComment = (
   itemName: string,
   score: number,
@@ -125,37 +111,40 @@ ${criteria ? `【スコアの判定コメント】: ${criteria}` : ""}
 ・「企業理念」や「Less is more」という単語は絶対に使用しないでください。`;
 
   try {
-    // 1. Chrome(Web) Native AIが利用可能な場合 (Gemmaベースのローカルモデル)
-    if ('ai' in window && 'languageModel' in (window as any).ai) {
+    // 1. WebLLM (自動ダウンロードされたローカルモデル) が準備完了している場合
+    if (webLLMEngine) {
       try {
-        const model = await (window as any).ai.languageModel.create({
-          systemPrompt: "あなたは優秀な評価者です。"
+        const reply = await webLLMEngine.chat.completions.create({
+          messages: [
+            { role: "system", content: "あなたは優秀な評価者です。" },
+            { role: "user", content: prompt }
+          ],
         });
-        const response = await model.prompt(prompt);
-        if (response) return response.trim();
+        if (reply.choices[0]?.message?.content) {
+          return reply.choices[0].message.content.trim();
+        }
       } catch (e) {
-        console.warn("Local AI failed, falling back...", e);
+        console.warn("WebLLM generation failed, falling back...", e);
       }
     }
 
-    // 2. クラウド提供のGemini APIを利用する場合 (バックエンドプロキシ)
-    try {
-      const res = await fetch('/api/generate-comment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.text) return data.text.trim();
+    // 2. クラウド提供のGemini APIを利用する場合 (クライアントサイド)
+    const apiKey = process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+    if (apiKey) {
+      if (!ai) ai = new GoogleGenAI({ apiKey });
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash", 
+          contents: prompt,
+          config: { systemInstruction: "あなたは優秀な評価者です。" }
+        });
+        if (response.text) return response.text.trim();
+      } catch (e) {
+        console.warn("Cloud Gemini API failed", e);
       }
-    } catch (e) {
-      console.warn("Backend API fallback failed", e);
     }
     
-    // 3. どちらも利用できない場合 (APIキーなしの静的公開環境など)
+    // 3. どちらも利用できない場合 (APIキーなし、ネイティブ非対応など)
     // ローカルAIのフォールバック動作としてルールベースの返答をシミュレート
     console.info("Using simulated local AI response.");
     await new Promise(resolve => setTimeout(resolve, 800)); // 少しの遅延

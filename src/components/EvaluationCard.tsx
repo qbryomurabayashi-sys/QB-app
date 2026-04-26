@@ -58,6 +58,12 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
     }
   };
 
+  const handleDownloadCancel = () => {
+    setShowDownloadModal(false);
+    setPendingPersona(null);
+  };
+
+
   // Incident State
   const [newIncidentDesc, setNewIncidentDesc] = React.useState('');
   const [newIncidentDate, setNewIncidentDate] = React.useState(new Date().toISOString().split('T')[0]);
@@ -384,7 +390,7 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
       </div>
       <AnimatePresence>
         {showDownloadModal && (
-          <GemmaDownloadModal isOpen={showDownloadModal} onComplete={handleDownloadComplete} />
+          <GemmaDownloadModal isOpen={showDownloadModal} onComplete={handleDownloadComplete} onCancel={handleDownloadCancel} />
         )}
       </AnimatePresence>
     </div>
