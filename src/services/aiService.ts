@@ -17,10 +17,8 @@ export const setLocalAiReady = (ready: boolean) => {
 };
 
 export const AVAILABLE_MODELS = [
-  { id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC', name: 'Llama 3.2 1B (スマホ推奨 / 最軽量)', size: '約800MB' },
-  { id: 'TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC-1k', name: 'TinyLlama 1.1B (スマホ推奨 / 安定)', size: '約600MB' },
-  { id: 'gemma-2-2b-it-q4f16_1-MLC-1k', name: 'Gemma 2 2B (PC推奨 / 高性能)', size: '約1.6GB' },
-  { id: 'Llama-2-7b-chat-hf-q4f16_1-MLC-1k', name: 'Llama 2 7B (PC推奨 / 大規模)', size: '約4GB' }
+  { id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC', name: 'Llama 3.2 1B (軽量 / 高速)', size: '約800MB' },
+  { id: 'gemma-2-2b-it-q4f16_1-MLC-1k', name: 'Gemma 2 2B (高性能)', size: '約1.6GB' }
 ];
 
 // 現在選択されているモデル（設定がない場合はデフォルトとして一番小さめのものを対象にしつつ、ダウンロードUIで選べるようにする）
@@ -73,6 +71,15 @@ const initAiBackground = async () => {
 // initAiBackground();
 
 export const downloadModel = async (modelId: string, onProgress: (progress: number, text?: string) => void): Promise<void> => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) {
+    throw new Error("スマートフォンではローカルAI機能をご利用いただけません。クラウドAIをご利用ください。");
+  }
+
+  if (!navigator.gpu) {
+    throw new Error("このブラウザ・端末はWebGPUに対応していないため、ローカルAIを実行できません。");
+  }
+
   if (webLLMEngine && selectedModelId === modelId) {
     onProgress(100, "準備完了");
     return;
@@ -118,10 +125,6 @@ export const downloadModel = async (modelId: string, onProgress: (progress: numb
   }
   
   try {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    // モバイル端末でのOOM(メモリ不足)クラッシュを防ぐため、コンテキストウィンドウの上限を大幅に下げる
-    const chatOpts = isMobile ? { context_window_size: 1024, sliding_window_size: -1 } : undefined;
-
     let lastProgressTime = 0;
     
     if (!aiWorker) {
@@ -138,7 +141,7 @@ export const downloadModel = async (modelId: string, onProgress: (progress: numb
           progressCallbacks.forEach(cb => cb(report));
         }
       }
-    }, chatOpts);
+    });
     
     webLLMEngine = await initEnginePromise;
     isLocalAiReadyFlag = true;

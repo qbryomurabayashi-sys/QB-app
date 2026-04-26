@@ -21,6 +21,8 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
   const [showDownloadModal, setShowDownloadModal] = React.useState(false);
   const [pendingPersona, setPendingPersona] = React.useState<AIPersona | null>(null);
 
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   const executeGeneration = async (persona: AIPersona) => {
     setIsGeneratingMemo(true);
     try {
@@ -176,26 +178,28 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
           <div className="mb-4">
             <div className="flex justify-between items-center mb-1.5 px-1">
               <span className="text-[10px] font-bold text-gray-500">コメント・フィードバック (任意)</span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] text-purple-700/70 font-bold flex items-center gap-0.5">
-                  <Sparkles size={10} className={isGeneratingMemo ? "animate-pulse" : ""} />
-                  AI生成:
-                </span>
-                {(['normal', 'mild', 'strict', 'logical'] as const).map(p => {
-                    const labels = { normal: '標準', mild: '甘口', strict: '辛口', logical: '論理的' };
-                    return (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => handleGenerateMemo(p)}
-                          disabled={isGeneratingMemo || readOnly}
-                          className="text-[9px] bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 font-bold px-2 py-0.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-95"
-                        >
-                          {labels[p]}
-                        </button>
-                    )
-                })}
-              </div>
+              {!isMobile && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] text-purple-700/70 font-bold flex items-center gap-0.5">
+                    <Sparkles size={10} className={isGeneratingMemo ? "animate-pulse" : ""} />
+                    AI生成:
+                  </span>
+                  {(['normal', 'mild', 'strict', 'logical'] as const).map(p => {
+                      const labels = { normal: '標準', mild: '甘口', strict: '辛口', logical: '論理的' };
+                      return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => handleGenerateMemo(p)}
+                            disabled={isGeneratingMemo || readOnly}
+                            className="text-[9px] bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 font-bold px-2 py-0.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                          >
+                            {labels[p]}
+                          </button>
+                      )
+                  })}
+                </div>
+              )}
             </div>
             <textarea
               value={item.memo || ''}
