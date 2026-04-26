@@ -16,8 +16,10 @@ export const setLocalAiReady = (ready: boolean) => {
 };
 
 export const AVAILABLE_MODELS = [
-  { id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC', name: 'Llama 3.2 1B (スマホ推奨 / 軽量)', size: '約800MB' },
-  { id: 'gemma-2-2b-it-q4f16_1-MLC-1k', name: 'Gemma 2 2B (PC推奨 / 高性能)', size: '約1.6GB' }
+  { id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC', name: 'Llama 3.2 1B (スマホ推奨 / 最軽量)', size: '約800MB' },
+  { id: 'TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC-1k', name: 'TinyLlama 1.1B (スマホ推奨 / 安定)', size: '約600MB' },
+  { id: 'gemma-2-2b-it-q4f16_1-MLC-1k', name: 'Gemma 2 2B (PC推奨 / 高性能)', size: '約1.6GB' },
+  { id: 'Llama-2-7b-chat-hf-q4f16_1-MLC-1k', name: 'Llama 2 7B (PC推奨 / 大規模)', size: '約4GB' }
 ];
 
 // 現在選択されているモデル（設定がない場合はデフォルトとして一番小さめのものを対象にしつつ、ダウンロードUIで選べるようにする）
@@ -35,11 +37,16 @@ const initAiBackground = async () => {
       if (isCached && !webLLMEngine && !initEnginePromise) {
         selectedModelId = model.id;
         console.log(`Model ${model.id} is cached. Initializing in background...`);
+        let lastBgProgressTime = 0;
         initEnginePromise = CreateMLCEngine(selectedModelId, {
           initProgressCallback: (report) => {
-            currentProgressReport = report;
-            console.log("Background init progress:", report.text);
-            progressCallbacks.forEach(cb => cb(report));
+            const now = Date.now();
+            if (now - lastBgProgressTime > 100 || report.progress === 1) {
+              lastBgProgressTime = now;
+              currentProgressReport = report;
+              console.log("Background init progress:", report.text);
+              progressCallbacks.forEach(cb => cb(report));
+            }
           }
         });
         webLLMEngine = await initEnginePromise;
@@ -103,12 +110,22 @@ export const downloadModel = async (modelId: string, onProgress: (progress: numb
   }
   
   try {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    // モバイル端末でのOOM(メモリ不足)クラッシュを防ぐため、コンテキストウィンドウの上限を大幅に下げる
+    const chatOpts = isMobile ? { context_window_size: 512, sliding_window_size: 512 } : undefined;
+
+    let lastProgressTime = 0;
     initEnginePromise = CreateMLCEngine(selectedModelId, {
       initProgressCallback: (report) => {
-        onProgress(Math.round(report.progress * 100), report.text);
-        progressCallbacks.forEach(cb => cb(report));
+        const now = Date.now();
+        // スマホなどでUIスレッドをブロックしクラッシュするのを防ぐため、プログレス更新の頻度を制限する
+        if (now - lastProgressTime > 100 || report.progress === 1) {
+          lastProgressTime = now;
+          onProgress(Math.round(report.progress * 100), report.text);
+          progressCallbacks.forEach(cb => cb(report));
+        }
       }
-    });
+    }, chatOpts);
     
     webLLMEngine = await initEnginePromise;
     isLocalAiReadyFlag = true;
