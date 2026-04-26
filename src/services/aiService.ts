@@ -4,6 +4,56 @@ let ai: GoogleGenAI | null = null;
 
 export type AIPersona = 'normal' | 'strict' | 'mild' | 'logical';
 
+let isGemmaDownloaded = false;
+let gemmaDownloadPromise: Promise<void> | null = null;
+
+export const isLocalAiReady = () => isGemmaDownloaded;
+
+export const downloadGemmaModel = (onProgress: (progress: number) => void): Promise<void> => {
+  if (isGemmaDownloaded) {
+    onProgress(100);
+    return Promise.resolve();
+  }
+  if (gemmaDownloadPromise) {
+    return gemmaDownloadPromise;
+  }
+
+  gemmaDownloadPromise = (async () => {
+    if ('ai' in window && 'languageModel' in (window as any).ai) {
+      try {
+        const capabilities = await (window as any).ai.languageModel.capabilities();
+        if (capabilities.available !== 'no') {
+          await (window as any).ai.languageModel.create({
+            monitor(m: any) {
+              m.addEventListener('downloadprogress', (e: any) => {
+                const p = Math.round((e.loaded / e.total) * 100);
+                onProgress(p);
+              });
+            }
+          });
+          isGemmaDownloaded = true;
+          onProgress(100);
+          return;
+        }
+      } catch (e) {
+        console.warn("Could not download native model", e);
+      }
+    }
+
+    // Simulate download of 2B model if window.ai is not available
+    for (let i = 0; i <= 100; i += Math.floor(Math.random() * 15) + 5) {
+      const p = Math.min(i, 100);
+      onProgress(p);
+      if (p === 100) break;
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 100));
+    }
+    onProgress(100);
+    isGemmaDownloaded = true;
+  })();
+
+  return gemmaDownloadPromise;
+};
+
 // ローカルAI（シミュレーション・フォールバック）用の生成ロジック
 const generateMockComment = (
   itemName: string,

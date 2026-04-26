@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { MinusCircle, PlusCircle, ChevronUp, ChevronDown, MessageSquare, X, PlusCircle as PlusIcon, Sparkles } from 'lucide-react';
 import { EvaluationItem, Incident } from '../types';
 import { CLAIM_DEDUCTIONS, IMPROVEMENT_OPTS } from '../constants';
-import { generateEvaluationComment, AIPersona } from '../services/aiService';
+import { generateEvaluationComment, AIPersona, isLocalAiReady } from '../services/aiService';
+import { GemmaDownloadModal } from './GemmaDownloadModal';
 
 interface EvaluationCardProps {
   item: EvaluationItem;
@@ -17,8 +18,10 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
   const [isMemoOpen, setIsMemoOpen] = React.useState(!!item.memo);
   const [isGeneratingMemo, setIsGeneratingMemo] = React.useState(false);
+  const [showDownloadModal, setShowDownloadModal] = React.useState(false);
+  const [pendingPersona, setPendingPersona] = React.useState<AIPersona | null>(null);
 
-  const handleGenerateMemo = async (persona: AIPersona = 'normal') => {
+  const executeGeneration = async (persona: AIPersona) => {
     setIsGeneratingMemo(true);
     try {
       const criteriaStr = item.criteria ? item.criteria[item.score || 0] : undefined;
@@ -35,6 +38,23 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
       alert(err.message || "AI生成に失敗しました。");
     } finally {
       setIsGeneratingMemo(false);
+    }
+  };
+
+  const handleGenerateMemo = async (persona: AIPersona = 'normal') => {
+    if (!isLocalAiReady()) {
+      setPendingPersona(persona);
+      setShowDownloadModal(true);
+      return;
+    }
+    await executeGeneration(persona);
+  };
+
+  const handleDownloadComplete = () => {
+    setShowDownloadModal(false);
+    if (pendingPersona) {
+      executeGeneration(pendingPersona);
+      setPendingPersona(null);
     }
   };
 
@@ -362,6 +382,11 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
           )}
         </div>
       </div>
+      <AnimatePresence>
+        {showDownloadModal && (
+          <GemmaDownloadModal isOpen={showDownloadModal} onComplete={handleDownloadComplete} />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
