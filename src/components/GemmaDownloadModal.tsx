@@ -44,6 +44,10 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
       console.error("Download error:", err);
       setStatus('error');
       setErrorMsg(err.message || 'お使いのブラウザはWebGPUに対応していないか、メモリが不足しています。');
+      // 自動的にフォールバックへ進む
+      setTimeout(() => {
+         onComplete();
+      }, 3500);
     });
   };
 
@@ -119,7 +123,7 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
              <div className="text-sm text-red-600 mb-6 w-full text-left bg-red-50 p-3 rounded-lg border border-red-100 mt-2">
                エラーが発生しました。<br/>
                <span className="text-xs break-words">{errorMsg}</span><br/><br/>
-               <span className="text-xs text-gray-500">クラウドAI(Gemini api)にフォールバックします。</span>
+               <span className="text-xs font-semibold text-gray-700">自動でクラウドAIに切り替えて処理を継続します... ({status === 'error' ? '処理中' : ''})</span>
              </div>
           )}
           
