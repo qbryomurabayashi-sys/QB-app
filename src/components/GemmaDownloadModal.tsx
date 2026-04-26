@@ -11,6 +11,7 @@ interface GemmaDownloadModalProps {
 
 export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, onComplete, onCancel }) => {
   const [progress, setProgress] = useState(0);
+  const [progressText, setProgressText] = useState('初期化中...');
   const [status, setStatus] = useState<'idle' | 'downloading' | 'complete' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -19,11 +20,15 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
     if (isOpen && status === 'idle') {
       setStatus('downloading');
       setProgress(0);
-      downloadGemmaModel((p) => {
-        if (active) setProgress(p);
+      downloadGemmaModel((p, text) => {
+        if (active) {
+          setProgress(p);
+          if (text) setProgressText(text);
+        }
       }).then(() => {
         if (active) {
           setStatus('complete');
+          setProgressText('完了しました');
           setTimeout(() => {
             if (active) onComplete();
           }, 1500);
@@ -73,9 +78,12 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
                 />
               </div>
               
-              <div className="flex justify-between w-full text-xs font-semibold text-gray-500 mb-6">
+              <div className="flex justify-between w-full text-xs font-semibold text-gray-500 mb-2">
                 <span>{status === 'complete' ? '準備完了' : 'ダウンロード中...'}</span>
                 <span>{progress}%</span>
+              </div>
+              <div className="w-full text-xs text-gray-400 break-words mb-6 h-8 overflow-hidden text-left">
+                {progressText}
               </div>
             </>
           ) : (

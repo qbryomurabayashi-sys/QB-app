@@ -17,9 +17,9 @@ export const setLocalAiReady = (ready: boolean) => {
 // WebLLMのモデル名 (QwenかGemma等を指定。スマホでも動きやすいように軽量モデル推奨だがGemmaの要望があるのでGemma-2bにする)
 const SELECTED_MODEL = "gemma-2b-it-q4f16_1-MLC"; // 軽量な量子化Gemma 2B
 
-export const downloadGemmaModel = async (onProgress: (progress: number) => void): Promise<void> => {
+export const downloadGemmaModel = async (onProgress: (progress: number, text?: string) => void): Promise<void> => {
   if (webLLMEngine) {
-    onProgress(100);
+    onProgress(100, "Ready");
     return;
   }
   
@@ -29,7 +29,7 @@ export const downloadGemmaModel = async (onProgress: (progress: number) => void)
       { 
         initProgressCallback: (info) => {
           // info.progress is 0 to 1
-          onProgress(Math.round(info.progress * 100));
+          onProgress(Math.round(info.progress * 100), info.text);
         } 
       }
     );
