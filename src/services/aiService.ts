@@ -57,7 +57,9 @@ const initAiBackground = async () => {
 };
 
 // モジュール読み込み時に実行
-initAiBackground();
+// スマホなどで OOM (メモリ不足) クラッシュを防ぐため、バックグラウンドでの自動初期化は無効化します。
+// 必要なときに都度初期化するようにします。
+// initAiBackground();
 
 export const downloadModel = async (modelId: string, onProgress: (progress: number, text?: string) => void): Promise<void> => {
   if (webLLMEngine && selectedModelId === modelId) {
