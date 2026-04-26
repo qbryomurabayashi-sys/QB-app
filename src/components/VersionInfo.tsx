@@ -11,6 +11,17 @@ interface VersionUpdate {
 
 const UPDATES: VersionUpdate[] = [
   {
+    version: '2.5.0',
+    date: '2026-04-26',
+    title: 'AIフィードバック生成とパーソナライゼーション',
+    type: 'major',
+    changes: [
+      'Gemma-4 (E2B) モデルによる評価コメントの自動生成機能を搭載。',
+      'AIフィードバックのトーン（標準・甘口・辛口・論理的）を選択可能に。',
+      '店舗環境（シャンプー・カラー無し等のQBハウス特化）を踏まえたプロンプト調整機能の実装。'
+    ]
+  },
+  {
     version: '2.4.0',
     date: '2026-04-26',
     title: 'シェアリング & デザイン・アップデート',

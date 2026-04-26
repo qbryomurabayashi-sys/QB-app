@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MinusCircle, PlusCircle, ChevronUp, ChevronDown, MessageSquare, X, PlusCircle as PlusIcon } from 'lucide-react';
+import { MinusCircle, PlusCircle, ChevronUp, ChevronDown, MessageSquare, X, PlusCircle as PlusIcon, Sparkles } from 'lucide-react';
 import { EvaluationItem, Incident } from '../types';
 import { CLAIM_DEDUCTIONS, IMPROVEMENT_OPTS } from '../constants';
+import { generateEvaluationComment, AIPersona } from '../services/aiService';
 
 interface EvaluationCardProps {
   item: EvaluationItem;
@@ -15,6 +16,27 @@ interface EvaluationCardProps {
 export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, onUpdateMemo, onUpdateIncidents, readOnly }) => {
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
   const [isMemoOpen, setIsMemoOpen] = React.useState(!!item.memo);
+  const [isGeneratingMemo, setIsGeneratingMemo] = React.useState(false);
+
+  const handleGenerateMemo = async (persona: AIPersona = 'normal') => {
+    setIsGeneratingMemo(true);
+    try {
+      const criteriaStr = item.criteria ? item.criteria[item.score || 0] : undefined;
+      const memo = await generateEvaluationComment(
+        item.item,
+        item.desc,
+        item.score || 0,
+        item.max,
+        criteriaStr,
+        persona
+      );
+      onUpdateMemo(item.no, memo);
+    } catch (err: any) {
+      alert(err.message || "AI生成に失敗しました。");
+    } finally {
+      setIsGeneratingMemo(false);
+    }
+  };
 
   // Incident State
   const [newIncidentDesc, setNewIncidentDesc] = React.useState('');
@@ -126,13 +148,36 @@ export const EvaluationCard: React.FC<EvaluationCardProps> = ({ item, onUpdate, 
 
         {isMemoOpen && (
           <div className="mb-4">
+            <div className="flex justify-between items-center mb-1.5 px-1">
+              <span className="text-[10px] font-bold text-gray-500">コメント・フィードバック (任意)</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] text-purple-700/70 font-bold flex items-center gap-0.5">
+                  <Sparkles size={10} className={isGeneratingMemo ? "animate-pulse" : ""} />
+                  AI生成:
+                </span>
+                {(['normal', 'mild', 'strict', 'logical'] as const).map(p => {
+                    const labels = { normal: '標準', mild: '甘口', strict: '辛口', logical: '論理的' };
+                    return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => handleGenerateMemo(p)}
+                          disabled={isGeneratingMemo || readOnly}
+                          className="text-[9px] bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 font-bold px-2 py-0.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                        >
+                          {labels[p]}
+                        </button>
+                    )
+                })}
+              </div>
+            </div>
             <textarea
               value={item.memo || ''}
               onChange={(e) => onUpdateMemo(item.no, e.target.value)}
               placeholder="メモを入力..."
               className="w-full p-3 text-xs bg-gray-50 border border-gray-200 text-gray-800 focus:border-blue-500 focus:bg-white outline-none transition-all rounded-lg"
               rows={2}
-              disabled={readOnly}
+              disabled={readOnly || isGeneratingMemo}
             />
           </div>
         )}
