@@ -1,8 +1,8 @@
-import { CreateMLCEngine } from "@mlc-ai/web-llm";
+import { CreateMLCEngine, MLCEngine } from "@mlc-ai/web-llm";
 import { GoogleGenAI } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
-let webLLMEngine: any = null;
+let webLLMEngine: MLCEngine | null = null;
 
 export type AIPersona = 'normal' | 'strict' | 'mild' | 'logical';
 
@@ -14,8 +14,8 @@ export const setLocalAiReady = (ready: boolean) => {
   isLocalAiReadyFlag = ready;
 };
 
-// WebLLMのモデル名 (QwenかGemma等を指定。スマホでも動きやすいように軽量モデル推奨だがGemmaの要望があるのでGemma-2bにする)
-const SELECTED_MODEL = "gemma-2b-it-q4f16_1-MLC"; // 軽量な量子化Gemma 2B
+// WebLLMのモデル名 (Gemma 2 2Bの軽量量子化モデル。WebLLMは初回ダウンロード後にブラウザのキャッシュに保存します)
+const SELECTED_MODEL = "gemma-2-2b-it-q4f16_1-MLC"; 
 
 export const downloadGemmaModel = async (onProgress: (progress: number, text?: string) => void): Promise<void> => {
   if (webLLMEngine) {
@@ -24,17 +24,18 @@ export const downloadGemmaModel = async (onProgress: (progress: number, text?: s
   }
   
   try {
-    webLLMEngine = await CreateMLCEngine(
-      SELECTED_MODEL,
-      { 
-        initProgressCallback: (info) => {
-          // info.progress is 0 to 1
-          onProgress(Math.round(info.progress * 100), info.text);
-        } 
+    const engine = await CreateMLCEngine(SELECTED_MODEL, {
+      initProgressCallback: (report) => {
+        onProgress(Math.round(report.progress * 100), report.text);
       }
-    );
+    });
+    
+    webLLMEngine = engine;
     isLocalAiReadyFlag = true;
+    onProgress(100, "準備完了");
   } catch (error) {
+    webLLMEngine = null;
+    isLocalAiReadyFlag = false;
     console.error("WebLLM Error:", error);
     throw error;
   }

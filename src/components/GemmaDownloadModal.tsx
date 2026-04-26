@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Download, Cpu, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Cpu, CheckCircle, AlertTriangle } from 'lucide-react';
 import { downloadGemmaModel } from '../services/aiService';
 
 interface GemmaDownloadModalProps {
@@ -30,14 +30,14 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
           setStatus('complete');
           setProgressText('完了しました');
           setTimeout(() => {
-            if (active) onComplete();
+             onComplete();
           }, 1500);
         }
       }).catch(err => {
         console.error("Download error:", err);
         if (active) {
           setStatus('error');
-          setErrorMsg(err.message || 'お使いのブラウザはWebGPUに対応していない可能性があります。');
+          setErrorMsg(err.message || 'お使いのブラウザはWebGPUに対応していないか、メモリが不足しています。');
         }
       });
     }
@@ -60,11 +60,11 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
           </div>
           
           <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Local AI Setup
+            Local AI Setup (Gemma 2)
           </h3>
           <p className="text-sm text-gray-600 mb-6">
-            軽量版Gemmaモデルをブラウザに自動ダウンロードします。(約1.4GB)<br/>
-            通信環境の良い場所でお待ちください。
+            高性能な「Gemma 2」モデルをブラウザに連携します。(約1.6GB)<br/>
+            <span className="font-semibold text-blue-600">初回のみダウンロードが発生し、2回目以降はキャッシュから即座に起動します。</span>
           </p>
 
           {status !== 'error' ? (
@@ -79,7 +79,7 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
               </div>
               
               <div className="flex justify-between w-full text-xs font-semibold text-gray-500 mb-2">
-                <span>{status === 'complete' ? '準備完了' : 'ダウンロード中...'}</span>
+                <span>{status === 'complete' ? '準備完了' : 'ダウンロード・読み込み中...'}</span>
                 <span>{progress}%</span>
               </div>
               <div className="w-full text-xs text-gray-400 break-words mb-6 h-8 overflow-hidden text-left">
@@ -87,11 +87,11 @@ export const GemmaDownloadModal: React.FC<GemmaDownloadModalProps> = ({ isOpen, 
               </div>
             </>
           ) : (
-            <div className="text-sm text-red-600 mb-6">
-              エラーが発生しました。<br/>
-              {errorMsg}<br/>
-              <span className="text-xs text-gray-500">クラウドAI(Gemini)にフォールバックします。</span>
-            </div>
+             <div className="text-sm text-red-600 mb-6 w-full text-left bg-red-50 p-3 rounded-lg border border-red-100">
+               エラーが発生しました。<br/>
+               <span className="text-xs break-words">{errorMsg}</span><br/><br/>
+               <span className="text-xs text-gray-500">クラウドAI(Gemini)にフォールバックします。</span>
+             </div>
           )}
           
           <div className="flex gap-3 w-full">

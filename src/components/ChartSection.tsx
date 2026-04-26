@@ -96,17 +96,19 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-tight mb-4">
           バランスチャート
         </h3>
-        <div className="flex-grow">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
-              <PolarGrid stroke="#f1f5f9" />
-              <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} />
-              <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-              <Radar name="最新" dataKey="A" stroke="#2563eb" strokeWidth={2} fill="#2563eb" fillOpacity={0.15} />
-              {comparisonItems && <Radar name="比較用" dataKey="B" stroke="#f43f5e" strokeWidth={1} fill="#f43f5e" fillOpacity={0.05} strokeDasharray="4 4" />}
-              <Legend wrapperStyle={{ fontSize: '10px', color: '#64748b', fontWeight: 'bold', paddingTop: '10px' }} />
-            </RadarChart>
-          </ResponsiveContainer>
+        <div className="flex-grow relative">
+          <div className="absolute inset-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+              <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
+                <PolarGrid stroke="#f1f5f9" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                <Radar name="最新" dataKey="A" stroke="#2563eb" strokeWidth={2} fill="#2563eb" fillOpacity={0.15} />
+                {comparisonItems && <Radar name="比較用" dataKey="B" stroke="#f43f5e" strokeWidth={1} fill="#f43f5e" fillOpacity={0.05} strokeDasharray="4 4" />}
+                <Legend wrapperStyle={{ fontSize: '10px', color: '#64748b', fontWeight: 'bold', paddingTop: '10px' }} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
@@ -115,16 +117,18 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-tight mb-4">
             店長スキル詳細
           </h3>
-          <div className="flex-grow">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="60%" data={managerRadarData}>
-                <PolarGrid stroke="#f1f5f9" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#fb923c', fontSize: 9, fontWeight: 'bold' }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar name="店長評価" dataKey="A" stroke="#f97316" strokeWidth={2} fill="#f97316" fillOpacity={0.15} />
-                {comparisonItems && <Radar name="過去" dataKey="B" stroke="#64748b" strokeWidth={1} fill="#64748b" fillOpacity={0.05} strokeDasharray="4 4" />}
-              </RadarChart>
-            </ResponsiveContainer>
+          <div className="flex-grow relative">
+            <div className="absolute inset-0">
+              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                <RadarChart cx="50%" cy="50%" outerRadius="60%" data={managerRadarData}>
+                  <PolarGrid stroke="#f1f5f9" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#fb923c', fontSize: 9, fontWeight: 'bold' }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar name="店長評価" dataKey="A" stroke="#f97316" strokeWidth={2} fill="#f97316" fillOpacity={0.15} />
+                  {comparisonItems && <Radar name="過去" dataKey="B" stroke="#64748b" strokeWidth={1} fill="#64748b" fillOpacity={0.05} strokeDasharray="4 4" />}
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}
@@ -133,17 +137,19 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-tight mb-4">
           実績推移チャート
         </h3>
-        <div className="flex-grow pr-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={lineChartData} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={40} />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px', fontWeight: 'bold' }} />
-              <Line type="monotone" dataKey="cuts" name="月別実績" stroke="#2563eb" strokeWidth={3} dot={{ r: 4, fill: '#2563eb', strokeWidth: 0 }} connectNulls activeDot={{ r: 6 }} />
-              <Line type="monotone" dataKey="goal" name="目標ライン" stroke="#cbd5e1" strokeDasharray="4 4" dot={false} strokeWidth={1} />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="flex-grow pr-4 relative">
+          <div className="absolute inset-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+              <LineChart data={lineChartData} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={40} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px', fontWeight: 'bold' }} />
+                <Line type="monotone" dataKey="cuts" name="月別実績" stroke="#2563eb" strokeWidth={3} dot={{ r: 4, fill: '#2563eb', strokeWidth: 0 }} connectNulls activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="goal" name="目標ライン" stroke="#cbd5e1" strokeDasharray="4 4" dot={false} strokeWidth={1} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>
