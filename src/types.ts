@@ -42,6 +42,7 @@ export interface Metadata {
   date: string;
   updatedAt: number;
   performance: PerformanceData;
+  employmentType?: '社員' | 'パート';
 }
 
 export interface StaffSummary {
@@ -50,5 +51,6 @@ export interface StaffSummary {
   store: string;
   date: string;
   updatedAt: number;
+  employmentType?: '社員' | 'パート';
 }
 

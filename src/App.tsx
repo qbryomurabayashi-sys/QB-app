@@ -22,6 +22,7 @@ import { ShareModal } from './components/ShareModal';
 import { ActionPlan } from './components/ActionPlan';
 import { VersionInfo } from './components/VersionInfo';
 import { OperationGuide } from './components/OperationGuide';
+import { RankingPage } from './components/RankingPage';
 import { Sparkles, Share2 } from 'lucide-react';
 
 const STAFF_INDEX_KEY = 'qb_staff_index_v1';
@@ -59,7 +60,7 @@ const ScrollToTopButton = () => {
 export default function App() {
   const [staffList, setStaffList] = useState<StaffSummary[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'TOP' | 'MENU' | 'FORM' | 'ACTION_PLAN' | 'VERSION_INFO' | 'OPERATION_GUIDE'>('TOP');
+  const [viewMode, setViewMode] = useState<'TOP' | 'MENU' | 'FORM' | 'ACTION_PLAN' | 'VERSION_INFO' | 'OPERATION_GUIDE' | 'RANKING'>('TOP');
   const [selectedStaffSummary, setSelectedStaffSummary] = useState<StaffSummary | null>(null);
 
   const [items, setItems] = useState<EvaluationItem[]>(INITIAL_ITEMS);
@@ -138,7 +139,7 @@ export default function App() {
     localStorage.setItem(DATA_PREFIX + id, JSON.stringify(dataToSave));
     setStaffList(prev => {
       const newList = prev.map(s => s.id === id ? {
-        ...s, name: meta.name, store: meta.store, date: meta.date, updatedAt: Date.now()
+        ...s, name: meta.name, store: meta.store, date: meta.date, employmentType: meta.employmentType, updatedAt: Date.now()
       } : s).sort((a, b) => b.updatedAt - a.updatedAt);
       localStorage.setItem(STAFF_INDEX_KEY, JSON.stringify(newList));
       return newList;
@@ -312,7 +313,7 @@ export default function App() {
 
   const handleDownloadCSV = useCallback(() => {
     let csvContent = '\uFEFF';
-    csvContent += `店舗名: ${metadata.store}, スタッフ氏名: ${metadata.name}, 社員番号: ${metadata.employeeId}, 日付: ${metadata.date}\n\n`;
+    csvContent += `店舗名: ${metadata.store}, スタッフ氏名: ${metadata.name}, 社員番号: ${metadata.employeeId}, 身分: ${metadata.employmentType || ''}, 日付: ${metadata.date}\n`;
     csvContent += 'No,大項目,小項目,評価内容,点数,最大点,メモ\n';
     items.forEach((row) => {
       const scoreDisplay = row.score !== null ? row.score : "未記入";
@@ -344,15 +345,12 @@ export default function App() {
       return data;
     }).filter(d => d !== null);
 
-    const basicRows = [
-      { label: '店舗名', key: 'store' },
-      { label: '氏名', key: 'name' },
-      { label: '社員番号', key: 'employeeId' },
+    const rows = [
       { label: '評価日', key: 'date' },
       { label: '評価者', key: 'evaluator' }
     ];
 
-    basicRows.forEach(rowInfo => {
+    rows.forEach(rowInfo => {
       let rowStr = `"${rowInfo.label}"`;
       allStaffData.forEach(d => {
         rowStr += `,"${d.metadata[rowInfo.key] || ''}"`;
@@ -366,6 +364,14 @@ export default function App() {
 
     allStaffData.forEach(d => {
       const items = d.items;
+      const perfData = d.metadata?.performance || { monthlyCuts: [], excludedFromAverage: [] };
+      const { predictedTotal, currentTotal } = calculatePerformanceMetrics(
+        perfData.monthlyCuts || new Array(12).fill(0),
+        perfData.excludedFromAverage || new Array(12).fill(false)
+      );
+      // Determine what was previously saved as pScore (or calculate on the fly)
+      // Actually we have d.performanceScore but let's recompute it or just use d.performanceScore.
+      // Wait, in previous code: const pScore = d.performanceScore || 0;
       const pScore = d.performanceScore || 0;
       const itemTotal = items.reduce((sum: number, i: any) => sum + (i.score ?? 0), 0);
       const total = itemTotal + pScore;
@@ -377,7 +383,22 @@ export default function App() {
 
     csvContent += totalRow + '\n';
     csvContent += perfRow + '\n';
-    csvContent += mgrRow + '\n\n';
+    csvContent += mgrRow + '\n';
+
+    const infoRows = [
+      { label: '社員番号', key: 'employeeId' },
+      { label: '氏名', key: 'name' },
+      { label: '店舗', key: 'store' },
+      { label: '身分（社員orパート）', key: 'employmentType' }
+    ];
+
+    infoRows.forEach(rowInfo => {
+      let rowStr = `"${rowInfo.label}"`;
+      allStaffData.forEach(d => {
+        rowStr += `,"${d.metadata[rowInfo.key] || ''}"`;
+      });
+      csvContent += rowStr + '\n';
+    });
 
     INITIAL_ITEMS.forEach(initItem => {
       let itemRow = `"No.${initItem.no} ${initItem.category}-${initItem.item}"`;
@@ -555,6 +576,7 @@ export default function App() {
           onActionPlan={() => setViewMode('ACTION_PLAN')}
           onVersionInfo={() => setViewMode('VERSION_INFO')}
           onOperationGuide={() => setViewMode('OPERATION_GUIDE')}
+          onRanking={() => setViewMode('RANKING')}
           onImportRequest={() => setShareModal({ open: true, mode: 'import' })}
           onBackup={() => {
             const dataToExport: Record<string, string> = {};
@@ -641,6 +663,16 @@ export default function App() {
     return <OperationGuide onBack={() => setViewMode('TOP')} />;
   }
 
+  if (viewMode === 'RANKING') {
+    return <RankingPage staffList={staffList} onBack={() => setViewMode('TOP')} onSelect={(id) => {
+      const staff = staffList.find(s => s.id === id);
+      if (staff) {
+        setSelectedStaffSummary(staff);
+        setViewMode('MENU');
+      }
+    }} />;
+  }
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg sm:max-w-2xl flex flex-col relative">
       <ScrollToTopButton />
@@ -723,9 +755,19 @@ export default function App() {
               <input type="text" value={metadata.evaluator} onChange={(e) => setMetadata({ ...metadata, evaluator: e.target.value })} className="w-full border-b-2 border-gray-100 p-1 text-sm outline-none focus:border-blue-500 disabled:bg-gray-100" disabled={isReadOnly} />
             </div>
           </div>
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 mb-1">日付</label>
-            <input type="date" value={metadata.date} onChange={(e) => setMetadata({ ...metadata, date: e.target.value })} className="w-full border-b-2 border-gray-100 p-1 text-sm outline-none focus:border-blue-500 disabled:bg-gray-100" disabled={isReadOnly} />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 mb-1">日付</label>
+              <input type="date" value={metadata.date} onChange={(e) => setMetadata({ ...metadata, date: e.target.value })} className="w-full border-b-2 border-gray-100 p-1 text-sm outline-none focus:border-blue-500 disabled:bg-gray-100" disabled={isReadOnly} />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 mb-1">身分</label>
+              <select value={metadata.employmentType || ''} onChange={(e) => setMetadata({ ...metadata, employmentType: (e.target.value as '社員' | 'パート') || undefined })} className="w-full border-b-2 border-gray-100 p-1 text-sm outline-none focus:border-blue-500 bg-white disabled:bg-gray-100" disabled={isReadOnly}>
+                <option value="">未選択</option>
+                <option value="社員">社員</option>
+                <option value="パート">パート</option>
+              </select>
+            </div>
           </div>
         </div>
       </section>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Store, User, Plus, Trash2, History, ChevronRight, Upload, Download, Layers, BookOpen, Menu, X, HelpCircle, Info, ArrowLeft } from 'lucide-react';
+import { Store, User, Plus, Trash2, History, ChevronRight, Upload, Download, Layers, BookOpen, Menu, X, HelpCircle, Info, ArrowLeft, Trophy } from 'lucide-react';
 import { StaffSummary } from '../types';
+import { UpdatePopup } from './UpdatePopup';
 
 interface TopPageProps {
   staffList: StaffSummary[];
@@ -10,6 +11,7 @@ interface TopPageProps {
   onDelete: (id: string) => void;
   onBatchPrint: () => void;
   onActionPlan: () => void;
+  onRanking: () => void;
   onVersionInfo: () => void;
   onOperationGuide: () => void;
   onBackup: () => void;
@@ -20,7 +22,7 @@ interface TopPageProps {
 
 export const TopPage: React.FC<TopPageProps> = ({ 
   staffList, onSelect, onCreate, onDelete, onBatchPrint, onActionPlan, 
-  onVersionInfo, onOperationGuide, onBackup, onRestore, onImportRequest, onBackToDashboard
+  onRanking, onVersionInfo, onOperationGuide, onBackup, onRestore, onImportRequest, onBackToDashboard
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -36,6 +38,7 @@ export const TopPage: React.FC<TopPageProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <UpdatePopup />
       {/* Header */}
       <header className="bg-blue-900 shadow-md p-4 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto flex justify-between items-center text-white">
@@ -80,6 +83,10 @@ export const TopPage: React.FC<TopPageProps> = ({
               <div className="flex-grow overflow-y-auto p-4 space-y-6">
                 <div className="space-y-1">
                   <p className="text-xs font-bold text-gray-400 px-2 mb-2">評価ツール</p>
+                  <button onClick={() => { onRanking(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all">
+                    <Layers size={20} /> 
+                    <span>ランキング</span>
+                  </button>
                   <button onClick={() => { onActionPlan(); setIsMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all">
                     <BookOpen size={20} /> 
                     <span>店長アクションプラン</span>
@@ -134,13 +141,22 @@ export const TopPage: React.FC<TopPageProps> = ({
             <h2 className="text-2xl font-bold text-gray-800">スタッフ一覧</h2>
             <p className="text-gray-500 text-sm mt-1">評価を行うスタッフを選択してください。</p>
           </div>
-          <button
-            onClick={onCreate}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold shadow-md transition-all active:scale-95"
-          >
-            <Plus size={20} /> 
-            <span>新規スタッフ登録</span>
-          </button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              onClick={onRanking}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold shadow-md transition-all active:scale-95"
+            >
+              <Trophy size={20} /> 
+              <span>ランキング</span>
+            </button>
+            <button
+              onClick={onCreate}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold shadow-md transition-all active:scale-95"
+            >
+              <Plus size={20} /> 
+              <span>新規登録</span>
+            </button>
+          </div>
         </div>
 
         {uniqueStaffList.length === 0 ? (

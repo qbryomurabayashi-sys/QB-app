@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowLeft, Zap, Calendar } from 'lucide-react';
 
-interface VersionUpdate {
+export interface VersionUpdate {
   version: string;
   date: string;
   title: string;
@@ -9,14 +9,25 @@ interface VersionUpdate {
   type: 'major' | 'minor' | 'patch';
 }
 
-const UPDATES: VersionUpdate[] = [
+export const UPDATES: VersionUpdate[] = [
+  {
+    version: '2.6.0',
+    date: '2026-04-27',
+    title: 'ランキング機能およびCSV出力項目の更新',
+    type: 'major',
+    changes: [
+      'トップ画面にスタッフの「ランキング」機能を追加しました。カット予測・実績を含めた動的なスコアを確認できます。',
+      'スタッフの基本情報として「身分（社員・パート）」を追加し、登録・管理を可能にしました。',
+      'CSVの出力項目を見直し、より見やすく管理しやすい並び順へ変更しました。'
+    ]
+  },
   {
     version: '2.5.0',
     date: '2026-04-26',
     title: 'AIフィードバック生成とパーソナライゼーション',
     type: 'major',
     changes: [
-      'Gemma-4 (E2B) モデルによる評価コメントの自動生成機能を搭載。',
+      'Gemma2およびLlama3モデルによる評価コメントの自動生成機能を搭載（※パソコンでのみ対応）。',
       'AIフィードバックのトーン（標準・甘口・辛口・論理的）を選択可能に。',
       '店舗環境（シャンプー・カラー無し等のQBハウス特化）を踏まえたプロンプト調整機能の実装。'
     ]
@@ -110,10 +121,6 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({ onBack }) => {
                     v{update.version}
                   </span>
                   <h2 className="font-bold text-sm text-gray-800">{update.title}</h2>
-                </div>
-                <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase">
-                  <Calendar size={12} />
-                  {update.date}
                 </div>
               </div>
               <div className="p-5">
