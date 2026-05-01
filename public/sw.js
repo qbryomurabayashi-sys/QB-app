@@ -1,3 +1,13 @@
-self.addEventListener('fetch', function(event) {
-  // A simple pass-through service worker
+const CACHE_NAME = 'qb-cache-v1';
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
+});
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(fetch(event.request));
 });
